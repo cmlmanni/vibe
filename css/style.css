@@ -1,0 +1,52 @@
+:root {
+  --vscode-bg: #1e1e1e;
+  --sidebar-bg: #252526;
+  --editor-bg: #1e1e1e;
+  --panel-bg: #252526;
+  --activity-bar-bg: #333333;
+  --text-color: #cccccc;
+  --border-color: #3c3c3c;
+  --blue-accent: #007acc;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background-color: var(--vscode-bg);
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.CodeMirror {
+  height: 100%;
+  font-family: "Fira Code", monospace;
+  font-size: 14px;
+}
+.cm-s-dracula.CodeMirror,
+.cm-s-dracula .CodeMirror-gutters {
+  background-color: var(--editor-bg) !important;
+  color: var(--text-color) !important;
+  border: none;
+}
+.cm-s-dracula .CodeMirror-linenumber {
+  color: #6c757d;
+}
+#turtle-canvas {
+  border: 1px solid var(--border-color);
+}
+.chat-bubble pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #1e1e1e;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+}
+.resizer {
+  background-color: var(--activity-bar-bg);
+  width: 5px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  z-index: 10;
+}
