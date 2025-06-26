@@ -1,12 +1,15 @@
 :root {
   --vscode-bg: #1e1e1e;
   --sidebar-bg: #252526;
-  --editor-bg: #1e1e1e;
-  --panel-bg: #252526;
   --activity-bar-bg: #333333;
-  --text-color: #cccccc;
+  --editor-bg: #1e1e1e;
+  --panel-bg: #1e1e1e;
   --border-color: #3c3c3c;
-  --blue-accent: #007acc;
+  --blue-accent: #0078d4;
+  --user-message-bg: #2d333b;
+  --ai-message-bg: #1e2228;
+  --system-message-bg: #32363e;
+  --text-color: #e0e0e0;
 }
 
 html,
@@ -33,9 +36,20 @@ body {
 .cm-s-dracula .CodeMirror-linenumber {
   color: #6c757d;
 }
-#turtle-canvas {
+#turtle-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: white;
   border: 1px solid var(--border-color);
 }
+
+/* Ensure canvas container has proper positioning */
+.canvas-container {
+  position: relative;
+  overflow: visible; /* Allow child canvases to be visible */
+}
+
 .chat-bubble pre {
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -49,4 +63,236 @@ body {
   cursor: col-resize;
   flex-shrink: 0;
   z-index: 10;
+}
+
+/* Chat message styling */
+.chat-message {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.375rem;
+  max-width: 100%;
+  color: var(--text-color);
+}
+
+.user-message {
+  background-color: #2d333b;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-message .mb-1 {
+  display: flex;
+  align-items: center;
+}
+
+/* Ensure user icon and text are properly aligned */
+.user-message svg {
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+.ai-message {
+  background-color: #1e2228;
+  border-left: 3px solid var(--blue-accent);
+}
+
+.system-message {
+  background-color: #32363e;
+  font-style: italic;
+  font-size: 0.85em;
+  padding: 8px;
+  text-align: center;
+}
+
+/* Code block styling */
+.code-suggestion {
+  border: 1px solid #3a404a;
+  margin-top: 8px;
+}
+
+.code-suggestion pre {
+  margin: 0;
+  background-color: #1e1e1e;
+  overflow-x: auto;
+}
+
+.code-suggestion pre code {
+  color: #e0e0e0;
+}
+
+.code-suggestion code {
+  font-family: "Fira Code", monospace;
+  white-space: pre;
+}
+
+/* Make sure the editor takes up space */
+.editor-pane {
+  flex: none; /* Override flex property to allow explicit height */
+  height: 50%; /* Default height - will be adjusted by the resize handle */
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-pane .CodeMirror {
+  height: 100% !important; /* Force CodeMirror to fill the editor pane */
+}
+
+/* Copilot-like UI enhancements */
+.ai-options-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ai-option-button {
+  background-color: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text-color);
+}
+
+.ai-option-button:hover {
+  background-color: var(--blue-accent);
+  border-color: var(--blue-accent);
+}
+
+/* Action buttons in chat messages */
+.action-button {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Resizable panels styling */
+.resize-handle {
+  background: var(--border-color);
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.resize-handle:hover,
+.resize-handle:active {
+  background: var(--blue-accent);
+}
+
+/* Vertical resize handle (between editor and output) */
+.vertical-resize-handle {
+  height: 6px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+/* Horizontal resize handles */
+.horizontal-resize-handle {
+  width: 6px;
+  height: 100%;
+  position: absolute;
+  cursor: col-resize;
+  top: 0;
+}
+
+/* Left resize handle (for tutorial sidebar) */
+.left-resize-handle {
+  right: 0;
+}
+
+/* Right resize handle (for AI panel) */
+.right-resize-handle {
+  left: 0;
+}
+
+/* Ensure sidebars have relative positioning for absolute positioned handles */
+.sidebar,
+.ai-panel {
+  position: relative;
+  height: 100%;
+  flex-shrink: 0; /* Prevent panels from shrinking */
+  transition: none; /* Remove any transitions */
+}
+
+/* Make sure container fills available space */
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  overflow: visible;
+  min-height: 200px;
+}
+
+#turtle-container {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  position: relative;
+}
+
+/* Fix Skulpt's internal canvas positioning - let Skulpt handle its own positioning */
+/* Remove the overly restrictive positioning rules that interfere with animation */
+
+/* Ensure SVG elements inside container are visible */
+#turtle-container svg {
+  display: block !important;
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+/* Let Skulpt handle turtle graphics positioning and events naturally */
+
+/* Specific styles for Skulpt turtle graphics */
+#turtle-container div {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Prevent text selection during resize */
+body.resizing {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default !important;
+}
+
+body.resizing * {
+  cursor: inherit !important;
+}
+
+/* Add this to ensure the app container has the right structure */
+#app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Ensure the output pane gets proper space */
+.output-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
 }

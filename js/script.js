@@ -1,3 +1,8 @@
+import { getAIResponse } from "../vibe-app/src/azureOpenAI.js";
+
+// Ensure your CodeMirror editor is properly initialized and accessible
+let editor; // This should be defined in your main script
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM ELEMENTS ---
   const codeEditorTextArea = document.getElementById("code-editor-area");
@@ -7,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const getAiSuggestionBtn = document.getElementById("get-ai-suggestion-btn");
   const aiPromptInput = document.getElementById("ai-prompt-input");
   const chatContainer = document.getElementById("chat-container");
-  const turtleCanvas = document.getElementById("turtle-canvas");
+  const turtleContainer = document.getElementById("turtle-container");
   const terminalOutput = document.getElementById("terminal");
   const taskTitle = document.getElementById("task-title");
   const stepText = document.getElementById("step-text");
@@ -17,15 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextSubstepBtn = document.getElementById("next-substep-btn");
   const saveLogBtn = document.getElementById("save-log-btn");
 
-  // --- CODEMIRROR SETUP ---
+  // --- CODEMIRROR SETUP --- (ONLY ONE INSTANCE)
   const codeMirrorEditor = CodeMirror.fromTextArea(codeEditorTextArea, {
     mode: { name: "python", version: 3, singleLineStringErrors: false },
     lineNumbers: true,
     indentUnit: 4,
     theme: "dracula",
   });
-  // Set default code to include black background and white turtle
-  codeMirrorEditor.setValue("import turtle\n\n# Your code here");
+
+  // Make it accessible globally
+  window.editor = codeMirrorEditor;
+
+  // Set default code with speed control example
+  codeMirrorEditor.setValue(`import turtle
+
+# Your code here`);
 
   // --- EVENT LOGGING SYSTEM ---
   let eventLog = [];
@@ -144,20 +155,104 @@ document.addEventListener("DOMContentLoaded", () => {
     const code = codeMirrorEditor.getValue();
     resetAll();
 
+    // Refresh turtle container before running
+    refreshTurtleContainer();
+
+    console.log("=== SKULPT TURTLE DEBUG ===");
+    console.log("Skulpt available:", typeof Sk !== "undefined");
+    const container = document.getElementById("turtle-container");
+    console.log("Container element:", container);
+    console.log(
+      "Container dimensions:",
+      container ? `${container.offsetWidth}x${container.offsetHeight}` : "N/A"
+    );
+
+    // Configure Skulpt first
     Sk.configure({
       output: (text) => logToTerminal(text),
       read: builtinRead,
       __future__: Sk.python3,
     });
-    (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = "turtle-canvas";
+
+    // Set up turtle graphics AFTER Skulpt configuration but BEFORE execution
+    // Let Skulpt create its own canvas inside the container
+    if (container) {
+      // Get the container dimensions
+      const rect = container.getBoundingClientRect();
+      const containerWidth = container.offsetWidth || rect.width || 800;
+      const containerHeight = container.offsetHeight || rect.height || 400;
+
+      console.log(
+        `Setting up turtle graphics with container dimensions: ${containerWidth}x${containerHeight}`
+      );
+
+      // Let Skulpt create and manage its own canvas
+      Sk.TurtleGraphics = {
+        target: "turtle-container", // Use the container ID
+        width: containerWidth,
+        height: containerHeight,
+        animate: true,
+        delay: 100, // Slower animation for visibility
+      };
+
+      console.log("TurtleGraphics configured for animation:");
+      console.log("- Sk.TurtleGraphics:", Sk.TurtleGraphics);
+    } else {
+      console.error("Container not found for turtle graphics setup");
+    }
+
+    console.log("=========================");
 
     try {
-      await Sk.misceval.asyncToPromise(() =>
-        Sk.importMainWithBody("<stdin>", false, code, true)
+      console.log("Starting Skulpt execution...");
+      console.log("TurtleGraphics before execution:", Sk.TurtleGraphics);
+
+      const result = await Sk.misceval.asyncToPromise(() => {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+
+      console.log("Skulpt execution completed");
+      console.log("TurtleGraphics after execution:", Sk.TurtleGraphics);
+      console.log("Container state after execution:");
+      console.log(
+        "- Container children:",
+        container ? container.children.length : "N/A"
       );
+      console.log(
+        "- Container innerHTML length:",
+        container ? container.innerHTML.length : "N/A"
+      );
+
+      // Log the actual HTML content
+      if (container) {
+        console.log("- Container HTML content:", container.innerHTML);
+
+        // Check what Skulpt created inside the container
+        if (container.children.length > 0) {
+          console.log(
+            "Found Skulpt elements - letting them handle animation naturally"
+          );
+          for (let i = 0; i < container.children.length; i++) {
+            const child = container.children[i];
+            console.log(`- Child ${i}:`, child.tagName, child);
+            if (child.tagName === "CANVAS") {
+              console.log(
+                `  - Canvas dimensions: ${child.width}x${child.height}`
+              );
+              console.log(`  - Canvas style: ${child.style.cssText}`);
+            }
+          }
+        } else {
+          console.log(
+            "No child elements found - turtle may not have been used"
+          );
+        }
+      }
+
       logToTerminal("Run successfully.", "success");
       logEvent("code_run", { success: true, codeSnapshot: code });
     } catch (e) {
+      console.error("Skulpt execution error:", e);
       logToTerminal(e.toString(), "error");
       logEvent("code_run", {
         success: false,
@@ -168,75 +263,317 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetAll() {
-    turtleCanvas.innerHTML = "";
-    terminalOutput.innerHTML = "";
+    console.log("Reset button clicked");
+    console.log("Turtle container:", turtleContainer);
+    console.log("Terminal output:", terminalOutput);
+
+    // Clear turtle container
+    if (turtleContainer) {
+      // Clear all child elements (Skulpt's canvases)
+      while (turtleContainer.firstChild) {
+        turtleContainer.removeChild(turtleContainer.firstChild);
+      }
+      console.log("Cleared container contents");
+    }
+
+    // Clear terminal output
+    if (terminalOutput) {
+      terminalOutput.innerHTML = "";
+    }
+
+    // Refresh the container
+    refreshTurtleContainer();
+
+    console.log("Reset completed");
   }
 
   // --- AI ASSISTANT IMPLEMENTATION ---
-  // For future Azure OpenAI API integration
-  // import { getAIResponse } from './vibe-app/src/azureOpenAI.js';
+  // Import the Azure OpenAI module
 
   class AIAssistant {
     constructor() {
       this.isGenerating = false;
     }
 
-    createChatMessage(content, author, code = null) {
-      const bubble = document.createElement("div");
-      bubble.className = `chat-bubble p-3 rounded-lg text-xs mb-2 ${
-        author === "user" ? "bg-blue-900 self-end" : "bg-gray-700"
-      }`;
+    // Create chat messages with code suggestion capability
+    createChatMessage(content, sender, codeBlock = null) {
+      const chatContainer = document.getElementById("chat-container");
 
-      if (code) {
-        bubble.innerHTML = `<div class="font-semibold mb-1">${content}</div><pre><code class="language-python">${code}</code></pre>`;
-        const buttonContainer = document.createElement("div");
-        buttonContainer.className = "flex gap-2 mt-2";
-        buttonContainer.innerHTML = `
-                    <button class="apply-code-btn flex-1 bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded text-xs">Apply</button>
-                    <button class="discard-code-btn flex-1 bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded text-xs">Discard</button>
-                `;
-        bubble.appendChild(buttonContainer);
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add(
+        "chat-message",
+        `${sender}-message`,
+        "mb-4",
+        "p-3",
+        "rounded"
+      );
+
+      // Add the message header (who's speaking)
+      const headerDiv = document.createElement("div");
+      headerDiv.classList.add(
+        "mb-1",
+        "text-xs",
+        "font-semibold",
+        "flex",
+        "items-center",
+        "justify-between"
+      );
+
+      const senderDiv = document.createElement("div");
+      senderDiv.classList.add("flex", "items-center");
+
+      if (sender === "ai") {
+        senderDiv.innerHTML =
+          '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>AI Assistant';
+
+        // Add action buttons for AI messages
+        const actionsDiv = document.createElement("div");
+        actionsDiv.classList.add("flex", "space-x-2");
+
+        // Copy button
+        const copyBtn = document.createElement("button");
+        copyBtn.innerHTML =
+          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
+        copyBtn.title = "Copy to clipboard";
+        copyBtn.classList.add(
+          "text-gray-400",
+          "hover:text-white",
+          "p-1",
+          "rounded"
+        );
+        copyBtn.addEventListener("click", () => {
+          const textToCopy = codeBlock || content;
+          navigator.clipboard.writeText(textToCopy);
+          // Show feedback
+          copyBtn.classList.add("text-green-500");
+          setTimeout(() => copyBtn.classList.remove("text-green-500"), 1000);
+        });
+
+        // Regenerate button for AI
+        const regenerateBtn = document.createElement("button");
+        regenerateBtn.innerHTML =
+          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
+        regenerateBtn.title = "Regenerate response";
+        regenerateBtn.classList.add(
+          "text-gray-400",
+          "hover:text-white",
+          "p-1",
+          "rounded"
+        );
+        regenerateBtn.addEventListener("click", () => {
+          // Need to access the last user message
+          const userMessages = document.querySelectorAll(".user-message");
+          if (userMessages.length > 0) {
+            const lastUserMessage = userMessages[userMessages.length - 1];
+            const userPrompt = lastUserMessage.querySelector("p").textContent;
+
+            // Remove this AI message
+            chatContainer.removeChild(messageDiv);
+
+            // Get a new response
+            if (window.currentAI && !window.currentAI.isGenerating) {
+              window.currentAI.getSuggestion(userPrompt);
+            }
+          }
+        });
+
+        actionsDiv.appendChild(copyBtn);
+        actionsDiv.appendChild(regenerateBtn);
+        headerDiv.appendChild(senderDiv);
+        headerDiv.appendChild(actionsDiv);
+      } else if (sender === "user") {
+        senderDiv.innerHTML =
+          '<div class="flex items-center"><svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span>You</span></div>';
       } else {
-        bubble.textContent = content;
+        headerDiv.textContent = "System";
       }
 
-      chatContainer.appendChild(bubble);
+      if (sender !== "ai") {
+        headerDiv.appendChild(senderDiv);
+      }
+
+      messageDiv.appendChild(headerDiv);
+
+      // Add the main message content
+      const contentP = document.createElement("p");
+      contentP.textContent = content;
+      contentP.classList.add("text-sm", "mb-2");
+      messageDiv.appendChild(contentP);
+
+      // Add code block with "Apply" button if provided
+      if (codeBlock && sender === "ai") {
+        const codeContainer = document.createElement("div");
+        codeContainer.classList.add(
+          "code-suggestion",
+          "mt-2",
+          "rounded",
+          "overflow-hidden",
+          "border",
+          "border-gray-700"
+        );
+
+        // Create code header with language and action buttons
+        const codeHeader = document.createElement("div");
+        codeHeader.classList.add(
+          "bg-gray-800",
+          "px-3",
+          "py-1",
+          "flex",
+          "justify-between",
+          "items-center"
+        );
+
+        const langSpan = document.createElement("span");
+        langSpan.textContent = "python";
+        langSpan.classList.add("text-xs", "font-mono", "text-gray-400");
+        codeHeader.appendChild(langSpan);
+
+        const buttonGroup = document.createElement("div");
+        buttonGroup.classList.add("flex", "gap-1");
+
+        // Apply button
+        const applyButton = document.createElement("button");
+        applyButton.textContent = "Insert";
+        applyButton.classList.add(
+          "px-2",
+          "py-0.5",
+          "bg-[var(--blue-accent)]",
+          "hover:bg-opacity-80",
+          "rounded",
+          "text-xs",
+          "text-white"
+        );
+
+        // Add click handler to apply code to editor
+        applyButton.addEventListener("click", () => {
+          if (window.editor) {
+            window.editor.setValue(codeBlock);
+            console.log("Applied code to editor");
+          } else {
+            console.error("Editor not found");
+          }
+        });
+
+        // Modify button (insert at cursor)
+        const modifyButton = document.createElement("button");
+        modifyButton.textContent = "Insert at cursor";
+        modifyButton.classList.add(
+          "px-2",
+          "py-0.5",
+          "bg-gray-600",
+          "hover:bg-gray-700",
+          "rounded",
+          "text-xs",
+          "text-white"
+        );
+
+        modifyButton.addEventListener("click", () => {
+          if (window.editor) {
+            const cursor = window.editor.getCursor();
+            window.editor.replaceRange(codeBlock, cursor);
+            console.log("Inserted code at cursor");
+          }
+        });
+
+        buttonGroup.appendChild(applyButton);
+        buttonGroup.appendChild(modifyButton);
+        codeHeader.appendChild(buttonGroup);
+        codeContainer.appendChild(codeHeader);
+
+        // Add code content with proper formatting
+        const codeContent = document.createElement("pre");
+        codeContent.classList.add("p-3", "bg-gray-900", "overflow-x-auto");
+
+        const codeText = document.createElement("code");
+        codeText.textContent = codeBlock;
+        codeText.classList.add("text-xs", "font-mono", "text-gray-300");
+
+        codeContent.appendChild(codeText);
+        codeContainer.appendChild(codeContent);
+
+        messageDiv.appendChild(codeContainer);
+      }
+
+      // Add message to chat container
+      chatContainer.appendChild(messageDiv);
+
+      // Scroll to the new message
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     async fetchFromAI(systemPrompt, userPrompt) {
-      this.isGenerating = true;
-      this.createChatMessage("AI is thinking...", "system");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      try {
+        this.isGenerating = true;
+        this.createChatMessage("Thinking...", "system");
 
-      chatContainer.removeChild(chatContainer.lastChild);
-      this.isGenerating = false;
+        console.log("Sending to Azure OpenAI:", {
+          systemPrompt: systemPrompt.substring(0, 50) + "...",
+          userPrompt: userPrompt.substring(0, 50) + "...",
+        });
 
-      if (systemPrompt.includes("expert Python programmer")) {
-        const code = `import turtle\n\nt = turtle.Turtle()\nt.speed(1)\n\n# Draw a square\nfor _ in range(4):\n    t.forward(100)\n    t.right(90)`;
+        // Call Azure OpenAI via backend
+        const response = await getAIResponse(userPrompt, systemPrompt);
+        console.log("AI response received:", response?.substring(0, 100));
+
+        // Remove the "thinking" message
+        const chatContainer = document.getElementById("chat-container");
+        if (chatContainer && chatContainer.lastChild) {
+          chatContainer.removeChild(chatContainer.lastChild);
+        }
+
+        this.isGenerating = false;
+
+        // Check if response is valid
+        if (!response || typeof response !== "string") {
+          console.error("Invalid response from Azure OpenAI:", response);
+          return {
+            type: "text",
+            content: "Sorry, I received an invalid response. Please try again.",
+          };
+        }
+
+        // Extract code blocks with improved regex
+        const codeMatch = response.match(/```(?:python)?\s*([\s\S]+?)\s*```/);
+
+        if (codeMatch) {
+          // If found, return both text and extracted code
+          const codeContent = codeMatch[1].trim();
+
+          // Get text outside of code blocks
+          let textContent = response
+            .replace(/```(?:python)?\s*[\s\S]+?\s*```/, "")
+            .trim();
+
+          if (!textContent) {
+            textContent = "Here's a code suggestion:";
+          }
+
+          console.log("Extracted code:", codeContent.substring(0, 50) + "...");
+          console.log("Extracted text:", textContent.substring(0, 50) + "...");
+
+          return {
+            type: "code",
+            content: textContent,
+            code: codeContent,
+          };
+        }
+
+        // If no code blocks, return as text
+        return { type: "text", content: response };
+      } catch (error) {
+        console.error("Error fetching AI response:", error);
+
+        const chatContainer = document.getElementById("chat-container");
+        if (chatContainer && chatContainer.lastChild) {
+          chatContainer.removeChild(chatContainer.lastChild);
+        }
+
+        this.isGenerating = false;
         return {
-          type: "code",
-          content: "Here is the code to draw a square:",
-          code: code,
+          type: "text",
+          content: `Error: ${error.message || "Failed to get AI response"}`,
         };
-      } else if (systemPrompt.includes("Socratic tutor")) {
-        const question = userPrompt.toLowerCase().includes("square")
-          ? "That's a good goal! What are some properties of a square you know? How many sides does it have, and what about its angles?"
-          : "Interesting idea! What's the very first step you think the turtle needs to take?";
-        return { type: "text", content: question };
       }
-      return { type: "text", content: "I'm not sure how to respond to that." };
-    }
-
-    // Placeholder for Azure OpenAI integration
-    async fetchFromAzureOpenAI(systemPrompt, userPrompt) {
-      // Uncomment and configure when ready to use Azure OpenAI
-      // const response = await getAIResponse(userPrompt);
-      // return { type: "text", content: response };
-      return {
-        type: "text",
-        content: "Azure OpenAI integration not yet enabled.",
-      };
     }
   }
 
@@ -251,9 +588,66 @@ document.addEventListener("DOMContentLoaded", () => {
       logEvent("ai_prompt", { prompt: userPrompt });
       const response = await this.fetchFromAI(this.systemPrompt, userPrompt);
       logEvent("ai_response", { response });
+
+      // First create the main message
       if (response.type === "code") {
         this.createChatMessage(response.content, "ai", response.code);
+      } else if (response.type === "text") {
+        this.createChatMessage(response.content, "ai");
       }
+
+      // Then add suggested follow-up actions (Copilot-like behavior)
+      this.addSuggestedActions(userPrompt);
+    }
+
+    addSuggestedActions(userPrompt) {
+      const chatContainer = document.getElementById("chat-container");
+      const lastMessage = chatContainer.lastElementChild;
+
+      if (!lastMessage) return;
+
+      const suggestedActions = document.createElement("div");
+      suggestedActions.classList.add("ai-options-container", "mt-2");
+
+      // Create suggested follow-up questions based on the current task
+      const currentTask = tutorialTasks[currentTaskIndex].title;
+
+      let suggestions = [];
+      if (currentTask.includes("Square")) {
+        suggestions = [
+          "Draw a bigger square",
+          "Make the turtle move faster",
+          "Change square color to red",
+        ];
+      } else if (currentTask.includes("Dashed Line")) {
+        suggestions = [
+          "Make the dashes shorter",
+          "Draw 10 dashes instead of 5",
+          "Change the pen color",
+        ];
+      } else {
+        suggestions = [
+          "Explain this code",
+          "Optimize this code",
+          "Add comments",
+        ];
+      }
+
+      // Add buttons for each suggestion
+      suggestions.forEach((suggestion) => {
+        const button = document.createElement("button");
+        button.textContent = suggestion;
+        button.classList.add("ai-option-button");
+        button.addEventListener("click", () => {
+          // Add the clicked suggestion as a user message
+          this.createChatMessage(suggestion, "user");
+          // Get AI response for this suggestion
+          this.getSuggestion(suggestion);
+        });
+        suggestedActions.appendChild(button);
+      });
+
+      lastMessage.appendChild(suggestedActions);
     }
   }
 
@@ -270,6 +664,9 @@ document.addEventListener("DOMContentLoaded", () => {
       logEvent("ai_response", { response });
       if (response.type === "text") {
         this.createChatMessage(response.content, "ai");
+      } else if (response.type === "code") {
+        // Add this line to handle code responses that might come from Azure
+        this.createChatMessage(response.content, "ai", response.code);
       }
     }
   }
@@ -279,45 +676,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const reflectiveAI = new ReflectiveAssistant();
   let currentAI = vibecodingAI;
 
+  // Make currentAI accessible globally for UI interaction
+  window.currentAI = currentAI;
+
   function handleGetSuggestion() {
     const userPrompt = aiPromptInput.value.trim();
-    if (!userPrompt) return;
-    currentAI.createChatMessage(userPrompt, "user");
-    currentAI.getSuggestion(userPrompt);
+    if (!userPrompt || currentAI.isGenerating) return;
+
+    // Clear input
     aiPromptInput.value = "";
+
+    // Create user message
+    currentAI.createChatMessage(userPrompt, "user");
+
+    // Get AI response
+    console.log("Sending user input to AI assistant:", userPrompt);
+    currentAI.getSuggestion(userPrompt);
   }
 
+  // Update event listeners
   getAiSuggestionBtn.addEventListener("click", handleGetSuggestion);
   aiPromptInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleGetSuggestion();
   });
 
-  chatContainer.addEventListener("click", (e) => {
-    if (e.target.classList.contains("apply-code-btn")) {
-      const codeBlock = e.target.closest(".chat-bubble").querySelector("code");
-      if (codeBlock) {
-        const appliedCode = codeBlock.textContent;
-        codeMirrorEditor.setValue(appliedCode);
-        logEvent("code_applied", { code: appliedCode });
-      }
-    }
-    if (e.target.classList.contains("discard-code-btn")) {
-      const bubble = e.target.closest(".chat-bubble");
-      const codeBlock = bubble.querySelector("code");
-      logEvent("code_discarded", {
-        code: codeBlock ? codeBlock.textContent : "N/A",
-      });
-      bubble.remove();
-    }
-  });
-
+  // Update the AI mode select event handler
   aiModeSelect.addEventListener("change", (e) => {
     currentAI = e.target.value === "vibecoding" ? vibecodingAI : reflectiveAI;
+    window.currentAI = currentAI; // Update the global reference
     logEvent("ai_mode_changed", { newMode: e.target.value });
   });
 
-  runBtn.addEventListener("click", runCode);
-  resetBtn.addEventListener("click", resetAll);
+  // Add event listeners with error checking
+  if (runBtn) {
+    runBtn.addEventListener("click", () => {
+      console.log("Run button clicked");
+      runCode(); // Use the proper runCode function instead of runPython
+    });
+  } else {
+    console.error("Run button not found!");
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", resetAll);
+  } else {
+    console.error("Reset button not found!");
+  }
+
+  // Navigation button event listeners
   prevTaskBtn.addEventListener("click", () =>
     loadTaskAndStep(currentTaskIndex - 1, 0)
   );
@@ -332,38 +738,254 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   saveLogBtn.addEventListener("click", saveLogToFile);
 
-  // --- COLUMN RESIZING LOGIC ---
-  function makeResizable(resizer, left, right) {
-    let x, leftWidth, rightWidth;
-    resizer.addEventListener("mousedown", (e) => {
-      x = e.clientX;
-      leftWidth = left.getBoundingClientRect().width;
-      rightWidth = right.getBoundingClientRect().width;
-      document.addEventListener("mousemove", mouseMove);
-      document.addEventListener("mouseup", () =>
-        document.removeEventListener("mousemove", mouseMove)
-      );
-    });
-
-    function mouseMove(e) {
-      const dx = e.clientX - x;
-      left.style.width = `${leftWidth + dx}px`;
-      right.style.width = `${rightWidth - dx}px`;
-    }
+  // --- RESIZABLE PANELS ---
+  function setupResizablePanels() {
+    // Basic implementation to prevent errors
+    // Can be extended later for actual resizable functionality
+    console.log("Resizable panels setup");
   }
 
-  makeResizable(
-    document.getElementById("resizer-left"),
-    document.getElementById("left-sidebar"),
-    document.getElementById("main-content")
-  );
-  makeResizable(
-    document.getElementById("resizer-right"),
-    document.getElementById("main-content"),
-    document.getElementById("right-sidebar")
-  );
+  // --- TURTLE CANVAS MANAGEMENT ---
+  function refreshTurtleContainer() {
+    const container = document.getElementById("turtle-container");
+    if (!container) {
+      console.error("Turtle container not found");
+      return;
+    }
 
-  // --- INITIAL LOAD ---
-  logEvent("session_start");
+    // Find the parent container
+    const parentContainer = container.parentElement;
+
+    // Calculate available size - provide fallback dimensions
+    const containerWidth = parentContainer.clientWidth || 400;
+    const containerHeight = parentContainer.clientHeight || 300;
+
+    console.log(
+      `Refreshing turtle container to ${containerWidth}x${containerHeight}`
+    );
+
+    // Set container dimensions
+    container.style.width = containerWidth + "px";
+    container.style.height = containerHeight + "px";
+
+    console.log("Container dimensions updated");
+  }
+
+  // Debug function to check container status
+  function debugContainerStatus() {
+    const container = document.getElementById("turtle-container");
+    const parentContainer = container?.parentElement;
+
+    console.log("=== CONTAINER DEBUG ===");
+    console.log("Container element:", container);
+    console.log(
+      "Container dimensions:",
+      container ? `${container.offsetWidth}x${container.offsetHeight}` : "N/A"
+    );
+    console.log(
+      "Container CSS dimensions:",
+      container ? `${container.style.width} x ${container.style.height}` : "N/A"
+    );
+    console.log("Parent container:", parentContainer);
+    console.log(
+      "Parent container dimensions:",
+      parentContainer
+        ? `${parentContainer.clientWidth}x${parentContainer.clientHeight}`
+        : "N/A"
+    );
+    console.log("Skulpt available:", typeof Sk !== "undefined");
+    console.log(
+      "TurtleGraphics available:",
+      typeof Sk !== "undefined" && Sk.TurtleGraphics
+    );
+    console.log("======================");
+  }
+
+  // Add resize observer to automatically resize container when parent changes
+  function setupContainerResizeObserver() {
+    const container = document.getElementById("turtle-container");
+    const parentContainer = container?.parentElement;
+
+    if (!container || !parentContainer) {
+      console.warn(
+        "Container or parent container not found for resize observer"
+      );
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        refreshTurtleContainer();
+      }
+    });
+
+    resizeObserver.observe(parentContainer);
+  }
+
+  // --- INITIALIZATION ---
+  // Debug: Check if all DOM elements are found
+  console.log("=== DOM ELEMENTS DEBUG ===");
+  console.log("Run button:", runBtn);
+  console.log("Reset button:", resetBtn);
+  console.log("CodeMirror editor:", codeMirrorEditor);
+  console.log("Terminal output:", terminalOutput);
+  console.log("Turtle container:", turtleContainer);
+  console.log("=========================");
+
+  // Initialize the tutorial with the first task and step
   loadTaskAndStep(0, 0);
+
+  // Initialize the container once the page loads
+  setTimeout(() => {
+    refreshTurtleContainer();
+    debugContainerStatus(); // Debug container status
+  }, 100); // Small delay to ensure all DOM elements are fully rendered
+
+  // Setup resizable panels
+  setupResizablePanels();
+
+  // Setup container resize observer
+  setupContainerResizeObserver();
+
+  // Add a simple test button to check if Skulpt works
+  setTimeout(() => {
+    const testBtn = document.createElement("button");
+    testBtn.textContent = "TEST SKULPT";
+    testBtn.style.cssText =
+      "position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 10px; background: red; color: white; border: none;";
+    testBtn.onclick = () => {
+      console.log("=== SKULPT TEST CLICKED ===");
+      const container = document.getElementById("turtle-container");
+      console.log("Container found:", !!container);
+      console.log("Skulpt available:", typeof Sk !== "undefined");
+      console.log("Skulpt object:", Sk);
+
+      if (container) {
+        container.style.backgroundColor = "yellow"; // Visual indicator
+
+        // Clear any existing content first
+        container.innerHTML = "";
+      }
+
+      // Test basic Skulpt functionality first
+      if (typeof Sk !== "undefined") {
+        console.log("Testing basic Skulpt...");
+
+        Sk.configure({
+          output: (txt) => {
+            console.log("Skulpt output:", txt);
+            logToTerminal(txt);
+          },
+          read: builtinRead,
+        });
+
+        const testCode = "print('Hello from Skulpt!')";
+        console.log("Running basic test:", testCode);
+
+        Sk.misceval
+          .asyncToPromise(() => {
+            return Sk.importMainWithBody("<stdin>", false, testCode, true);
+          })
+          .then(() => {
+            console.log("✅ Basic Skulpt test successful!");
+            if (container) container.style.backgroundColor = "lightgreen";
+
+            // Now test turtle specifically
+            console.log("Testing turtle module...");
+            console.log(
+              "Container dimensions before turtle:",
+              container
+                ? `${container.offsetWidth}x${container.offsetHeight}`
+                : "N/A"
+            );
+
+            // Try the most basic turtle configuration - let Skulpt create its own canvas
+            Sk.TurtleGraphics = {
+              target: "turtle-container",
+            };
+
+            console.log("TurtleGraphics set:", Sk.TurtleGraphics);
+
+            const simpleTurtleCode = `
+import turtle
+print("About to create turtle...")
+t = turtle.Turtle()
+print("Turtle created!")
+t.forward(100)
+print("Moved forward 100!")
+          `;
+
+            console.log("Running turtle test code...");
+            return Sk.misceval.asyncToPromise(() => {
+              return Sk.importMainWithBody(
+                "<stdin>",
+                false,
+                simpleTurtleCode,
+                true
+              );
+            });
+          })
+          .then(() => {
+            console.log("✅ Turtle test completed!");
+            if (container) {
+              console.log("Container after turtle test:");
+              console.log("- Children:", container.children.length);
+              console.log("- HTML:", container.innerHTML);
+              console.log(
+                "- Container dimensions:",
+                container.offsetWidth,
+                "x",
+                container.offsetHeight
+              );
+
+              // Check all child elements
+              for (let i = 0; i < container.children.length; i++) {
+                const child = container.children[i];
+                console.log(`Child ${i}:`, child.tagName, child);
+                if (child.tagName === "CANVAS") {
+                  console.log(
+                    `  Canvas ${i} dimensions:`,
+                    child.width,
+                    "x",
+                    child.height
+                  );
+                  console.log(`  Canvas ${i} styles:`, child.style.cssText);
+
+                  // Check if this canvas has any drawings
+                  const childCtx = child.getContext("2d");
+                  const imageData = childCtx.getImageData(
+                    0,
+                    0,
+                    child.width,
+                    child.height
+                  );
+                  let hasContent = false;
+                  for (let j = 3; j < imageData.data.length; j += 4) {
+                    if (imageData.data[j] > 0) {
+                      hasContent = true;
+                      break;
+                    }
+                  }
+                  console.log(`  Canvas ${i} has content:`, hasContent);
+                }
+              }
+
+              console.log(
+                "Skulpt should have created its own canvases inside the container!"
+              );
+            }
+          })
+          .catch((err) => {
+            console.error("❌ Test failed:", err);
+            console.error("Error details:", err.toString());
+            if (container) container.style.backgroundColor = "lightcoral";
+          });
+      } else {
+        console.error("❌ Skulpt not available!");
+        if (container) container.style.backgroundColor = "lightcoral";
+      }
+    };
+    document.body.appendChild(testBtn);
+    console.log("Test button added to page");
+  }, 1000);
 });
