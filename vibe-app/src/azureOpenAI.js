@@ -3,7 +3,7 @@
 const BACKEND_URL = (() => {
   // Check if we're on GitHub Pages
   const isGitHubPages = window.location.hostname.includes(".github.io");
-  
+
   try {
     console.log("🔍 Environment detection:", {
       hostname: window.location.hostname,
