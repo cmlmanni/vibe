@@ -26,6 +26,14 @@ jobs:
 
       - name: Create GitHub Pages build
         run: |
+          # Debug: Check if secret is set (without revealing the value)
+          if [ -z "${{ secrets.AZURE_BACKEND_URL }}" ]; then
+            echo "❌ AZURE_BACKEND_URL secret is not set or empty"
+            exit 1
+          else
+            echo "✅ AZURE_BACKEND_URL secret is configured"
+          fi
+
           # Create a build directory for GitHub Pages
           mkdir -p gh-pages-build
 
@@ -46,7 +54,7 @@ jobs:
               <!-- GitHub Pages Configuration -->
               <script>
                 window.GITHUB_PAGES_CONFIG = {
-                  backendUrl: '${{ secrets.AZURE_BACKEND_URL || "" }}',
+                  backendUrl: '${{ secrets.AZURE_BACKEND_URL }}',
                   environment: 'github-pages'
                 };
               </script>

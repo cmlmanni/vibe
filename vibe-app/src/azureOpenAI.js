@@ -1,19 +1,47 @@
 // Backend API URL configuration
 // Uses relative URL for production (same origin) or configurable for development
 const BACKEND_URL = (() => {
-  // Check if we're on GitHub Pages
-  const isGitHubPages = window.location.hostname.includes(".github.io");
-  if (isGitHubPages) {
-    if (window.GITHUB_PAGES_CONFIG && window.GITHUB_PAGES_CONFIG.backendUrl) {
-      console.log("Using GitHub Pages backend configuration");
-      return window.GITHUB_PAGES_CONFIG.backendUrl;
-    } else {
-      // Log error if GitHub Pages config is missing
-      console.error("GitHub Pages config is missing! Please check GitHub Actions deployment.");
-      console.error("Expected: window.GITHUB_PAGES_CONFIG.backendUrl");
-      // Don't fallback to hardcoded URL - this should be configured properly
-      return null; // This will cause a clear error message
+  try {
+    // Check if we're on GitHub Pages
+    const isGitHubPages = window.location.hostname.includes(".github.io");
+    console.log("🔍 Environment detection:", {
+      hostname: window.location.hostname,
+      isGitHubPages: isGitHubPages,
+      userAgent: navigator.userAgent.substring(0, 50),
+    });
+
+    if (isGitHubPages) {
+      console.log("🌐 GitHub Pages detected - checking configuration...");
+      console.log("window.GITHUB_PAGES_CONFIG:", window.GITHUB_PAGES_CONFIG);
+
+      if (
+        window.GITHUB_PAGES_CONFIG &&
+        window.GITHUB_PAGES_CONFIG.backendUrl &&
+        window.GITHUB_PAGES_CONFIG.backendUrl.trim() !== ""
+      ) {
+        console.log(
+          "✅ Using GitHub Pages backend configuration:",
+          window.GITHUB_PAGES_CONFIG.backendUrl
+        );
+        return window.GITHUB_PAGES_CONFIG.backendUrl;
+      } else {
+        // Log detailed error for debugging
+        console.error("❌ GitHub Pages config is missing or incomplete!");
+        console.error("Available config:", window.GITHUB_PAGES_CONFIG);
+        console.error(
+          "Expected: window.GITHUB_PAGES_CONFIG.backendUrl with a non-empty value"
+        );
+        console.error(
+          "Repository secret AZURE_BACKEND_URL may not be set or GitHub Actions deployment failed"
+        );
+
+        // For now, return a clear error URL that will fail fast
+        return "GITHUB_PAGES_CONFIG_MISSING";
+      }
     }
+  } catch (error) {
+    console.error("❌ Error in environment detection:", error);
+    // Continue to fallback logic
   }
 
   // Check if we're in development mode (served from a different port than backend)
@@ -63,11 +91,19 @@ export async function getAIResponse(
   temperature = 0.7
 ) {
   try {
+    // Check if backend URL is properly configured
+    if (!BACKEND_URL || BACKEND_URL === "GITHUB_PAGES_CONFIG_MISSING") {
+      throw new Error(
+        "Backend URL not configured. Please check your deployment configuration."
+      );
+    }
+
     console.log("Calling Azure OpenAI with:", {
       promptPreview:
         prompt.substring(0, 50) + (prompt.length > 50 ? "..." : ""),
       systemPromptPreview:
         systemPrompt.substring(0, 50) + (systemPrompt.length > 50 ? "..." : ""),
+      backendURL: BACKEND_URL,
     });
 
     // Enhanced prompt for better code formatting
