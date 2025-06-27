@@ -48,14 +48,15 @@ jobs:
 
           # Create a modified index.html with GitHub Pages configuration
           DEPLOYMENT_TIME=$(date)
-          cat > gh-pages-build/index.html << EOF
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <title>AI Coding Experiment Prototype</title>
-
+          
+          # First, get the head section from original index.html up to the closing </head>
+          sed -n '1,/<\/head>/p' index.html > gh-pages-build/index.html.tmp
+          
+          # Remove the </head> closing tag temporarily
+          sed -i '$d' gh-pages-build/index.html.tmp
+          
+          # Add our GitHub Pages configuration script before closing </head>
+          cat >> gh-pages-build/index.html.tmp << EOF
               <!-- GitHub Pages Configuration -->
               <script>
                 window.GITHUB_PAGES_CONFIG = {
@@ -65,10 +66,14 @@ jobs:
                 };
                 console.log('🔍 GitHub Pages Config Loaded:', window.GITHUB_PAGES_CONFIG);
               </script>
+            </head>
           EOF
-
-          # Append the rest of the original index.html (skip the first few lines)
-          tail -n +6 index.html >> gh-pages-build/index.html
+          
+          # Now append the body section from the original file
+          sed -n '/<body/,$p' index.html >> gh-pages-build/index.html.tmp
+          
+          # Move the completed file to final location
+          mv gh-pages-build/index.html.tmp gh-pages-build/index.html
 
           # Debug: Show the generated config in build logs
           echo "📝 Generated GitHub Pages configuration:"
