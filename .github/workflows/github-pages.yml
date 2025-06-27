@@ -34,6 +34,8 @@ jobs:
             exit 1
           else
             echo "✅ AZURE_BACKEND_URL secret is configured"
+            echo "✅ Secret length: ${#AZURE_BACKEND_URL} characters"
+            echo "✅ Secret starts with: ${AZURE_BACKEND_URL:0:8}..."
           fi
 
           # Create a build directory for GitHub Pages
@@ -57,8 +59,10 @@ jobs:
               <script>
                 window.GITHUB_PAGES_CONFIG = {
                   backendUrl: '$AZURE_BACKEND_URL',
-                  environment: 'github-pages'
+                  environment: 'github-pages',
+                  deploymentTime: '$(date)'
                 };
+                console.log('🔍 GitHub Pages Config Loaded:', window.GITHUB_PAGES_CONFIG);
               </script>
           EOF
 
