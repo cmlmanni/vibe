@@ -893,146 +893,146 @@ document.addEventListener("DOMContentLoaded", () => {
   setupContainerResizeObserver();
 
   // Add a simple test button to check if Skulpt works
-  setTimeout(() => {
-    const testBtn = document.createElement("button");
-    testBtn.textContent = "TEST SKULPT";
-    testBtn.style.cssText =
-      "position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 10px; background: red; color: white; border: none;";
-    testBtn.onclick = () => {
-      console.log("=== SKULPT TEST CLICKED ===");
-      const container = document.getElementById("turtle-container");
-      console.log("Container found:", !!container);
-      console.log("Skulpt available:", typeof Sk !== "undefined");
-      console.log("Skulpt object:", Sk);
+  // setTimeout(() => {
+  //   const testBtn = document.createElement("button");
+  //   testBtn.textContent = "TEST SKULPT";
+  //   testBtn.style.cssText =
+  //     "position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 10px; background: red; color: white; border: none;";
+  //   testBtn.onclick = () => {
+  //     console.log("=== SKULPT TEST CLICKED ===");
+  //     const container = document.getElementById("turtle-container");
+  //     console.log("Container found:", !!container);
+  //     console.log("Skulpt available:", typeof Sk !== "undefined");
+  //     console.log("Skulpt object:", Sk);
 
-      if (container) {
-        container.style.backgroundColor = "yellow"; // Visual indicator
+  //     if (container) {
+  //       container.style.backgroundColor = "yellow"; // Visual indicator
 
-        // Clear any existing content first
-        container.innerHTML = "";
-      }
+  //       // Clear any existing content first
+  //       container.innerHTML = "";
+  //     }
 
-//       // Test basic Skulpt functionality first
-//       if (typeof Sk !== "undefined") {
-//         console.log("Testing basic Skulpt...");
+  //       // Test basic Skulpt functionality first
+  //       if (typeof Sk !== "undefined") {
+  //         console.log("Testing basic Skulpt...");
 
-//         Sk.configure({
-//           output: (txt) => {
-//             console.log("Skulpt output:", txt);
-//             logToTerminal(txt);
-//           },
-//           read: builtinRead,
-//         });
+  //         Sk.configure({
+  //           output: (txt) => {
+  //             console.log("Skulpt output:", txt);
+  //             logToTerminal(txt);
+  //           },
+  //           read: builtinRead,
+  //         });
 
-//         const testCode = "print('Hello from Skulpt!')";
-//         console.log("Running basic test:", testCode);
+  //         const testCode = "print('Hello from Skulpt!')";
+  //         console.log("Running basic test:", testCode);
 
-//         Sk.misceval
-//           .asyncToPromise(() => {
-//             return Sk.importMainWithBody("<stdin>", false, testCode, true);
-//           })
-//           .then(() => {
-//             console.log("✅ Basic Skulpt test successful!");
-//             if (container) container.style.backgroundColor = "lightgreen";
+  //         Sk.misceval
+  //           .asyncToPromise(() => {
+  //             return Sk.importMainWithBody("<stdin>", false, testCode, true);
+  //           })
+  //           .then(() => {
+  //             console.log("✅ Basic Skulpt test successful!");
+  //             if (container) container.style.backgroundColor = "lightgreen";
 
-//             // Now test turtle specifically
-//             console.log("Testing turtle module...");
-//             console.log(
-//               "Container dimensions before turtle:",
-//               container
-//                 ? `${container.offsetWidth}x${container.offsetHeight}`
-//                 : "N/A"
-//             );
+  //             // Now test turtle specifically
+  //             console.log("Testing turtle module...");
+  //             console.log(
+  //               "Container dimensions before turtle:",
+  //               container
+  //                 ? `${container.offsetWidth}x${container.offsetHeight}`
+  //                 : "N/A"
+  //             );
 
-//             // Try the most basic turtle configuration - let Skulpt create its own canvas
-//             Sk.TurtleGraphics = {
-//               target: "turtle-container",
-//             };
+  //             // Try the most basic turtle configuration - let Skulpt create its own canvas
+  //             Sk.TurtleGraphics = {
+  //               target: "turtle-container",
+  //             };
 
-//             console.log("TurtleGraphics set:", Sk.TurtleGraphics);
+  //             console.log("TurtleGraphics set:", Sk.TurtleGraphics);
 
-//             const simpleTurtleCode = `
-// import turtle
-// print("About to create turtle...")
-// t = turtle.Turtle()
-// print("Turtle created!")
-// t.forward(100)
-// print("Moved forward 100!")
-//             `;
+  //             const simpleTurtleCode = `
+  // import turtle
+  // print("About to create turtle...")
+  // t = turtle.Turtle()
+  // print("Turtle created!")
+  // t.forward(100)
+  // print("Moved forward 100!")
+  //             `;
 
-//             console.log("Running turtle test code...");
-//             return Sk.misceval.asyncToPromise(() => {
-//               return Sk.importMainWithBody(
-//                 "<stdin>",
-//                 false,
-//                 simpleTurtleCode,
-//                 true
-//               );
-//             });
-//           })
-//           .then(() => {
-//             console.log("✅ Turtle test completed!");
-//             if (container) {
-//               console.log("Container after turtle test:");
-//               console.log("- Children:", container.children.length);
-//               console.log("- HTML:", container.innerHTML);
-//               console.log(
-//                 "- Container dimensions:",
-//                 container.offsetWidth,
-//                 "x",
-//                 container.offsetHeight
-//               );
+  //             console.log("Running turtle test code...");
+  //             return Sk.misceval.asyncToPromise(() => {
+  //               return Sk.importMainWithBody(
+  //                 "<stdin>",
+  //                 false,
+  //                 simpleTurtleCode,
+  //                 true
+  //               );
+  //             });
+  //           })
+  //           .then(() => {
+  //             console.log("✅ Turtle test completed!");
+  //             if (container) {
+  //               console.log("Container after turtle test:");
+  //               console.log("- Children:", container.children.length);
+  //               console.log("- HTML:", container.innerHTML);
+  //               console.log(
+  //                 "- Container dimensions:",
+  //                 container.offsetWidth,
+  //                 "x",
+  //                 container.offsetHeight
+  //               );
 
-//               // Check all child elements
-//               for (let i = 0; i < container.children.length; i++) {
-//                 const child = container.children[i];
-//                 console.log(`Child ${i}:`, child.tagName, child);
-//                 if (child.tagName === "CANVAS") {
-//                   console.log(
-//                     `  Canvas ${i} dimensions:`,
-//                     child.width,
-//                     "x",
-//                     child.height
-//                   );
-//                   console.log(`  Canvas ${i} styles:`, child.style.cssText);
+  //               // Check all child elements
+  //               for (let i = 0; i < container.children.length; i++) {
+  //                 const child = container.children[i];
+  //                 console.log(`Child ${i}:`, child.tagName, child);
+  //                 if (child.tagName === "CANVAS") {
+  //                   console.log(
+  //                     `  Canvas ${i} dimensions:`,
+  //                     child.width,
+  //                     "x",
+  //                     child.height
+  //                   );
+  //                   console.log(`  Canvas ${i} styles:`, child.style.cssText);
 
-//                   // Check if this canvas has any drawings
-//                   const childCtx = child.getContext("2d");
-//                   const imageData = childCtx.getImageData(
-//                     0,
-//                     0,
-//                     child.width,
-//                     child.height
-//                   );
-//                   let hasContent = false;
-//                   for (let j = 3; j < imageData.data.length; j += 4) {
-//                     if (imageData.data[j] > 0) {
-//                       hasContent = true;
-//                       break;
-//                     }
-//                   }
-//                   console.log(`  Canvas ${i} has content:`, hasContent);
-//                 }
-//               }
+  //                   // Check if this canvas has any drawings
+  //                   const childCtx = child.getContext("2d");
+  //                   const imageData = childCtx.getImageData(
+  //                     0,
+  //                     0,
+  //                     child.width,
+  //                     child.height
+  //                   );
+  //                   let hasContent = false;
+  //                   for (let j = 3; j < imageData.data.length; j += 4) {
+  //                     if (imageData.data[j] > 0) {
+  //                       hasContent = true;
+  //                       break;
+  //                     }
+  //                   }
+  //                   console.log(`  Canvas ${i} has content:`, hasContent);
+  //                 }
+  //               }
 
-//               console.log(
-//                 "Skulpt should have created its own canvases inside the container!"
-//               );
-//             }
-//           })
-//           .catch((err) => {
-//             console.error("❌ Test failed:", err);
-//             console.error("Error details:", err.toString());
-//             if (container) container.style.backgroundColor = "lightcoral";
-//           });
-//       } else {
-//         console.error("❌ Skulpt not available!");
-//         if (container) container.style.backgroundColor = "lightcoral";
-//       }
-//     };
-//     document.body.appendChild(testBtn);
-//     console.log("Test button added to page");
-//   }, 1000);
+  //               console.log(
+  //                 "Skulpt should have created its own canvases inside the container!"
+  //               );
+  //             }
+  //           })
+  //           .catch((err) => {
+  //             console.error("❌ Test failed:", err);
+  //             console.error("Error details:", err.toString());
+  //             if (container) container.style.backgroundColor = "lightcoral";
+  //           });
+  //       } else {
+  //         console.error("❌ Skulpt not available!");
+  //         if (container) container.style.backgroundColor = "lightcoral";
+  //       }
+  //     };
+  //     document.body.appendChild(testBtn);
+  //     console.log("Test button added to page");
+  //   }, 1000);
 
   function checkTaskCompletion(code) {
     const currentTask = tutorialTasks[currentTaskIndex];
