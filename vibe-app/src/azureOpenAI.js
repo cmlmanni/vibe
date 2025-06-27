@@ -3,9 +3,17 @@
 const BACKEND_URL = (() => {
   // Check if we're on GitHub Pages
   const isGitHubPages = window.location.hostname.includes(".github.io");
-  if (isGitHubPages && window.GITHUB_PAGES_CONFIG) {
-    console.log("Using GitHub Pages backend configuration");
-    return window.GITHUB_PAGES_CONFIG.backendUrl;
+  if (isGitHubPages) {
+    if (window.GITHUB_PAGES_CONFIG && window.GITHUB_PAGES_CONFIG.backendUrl) {
+      console.log("Using GitHub Pages backend configuration");
+      return window.GITHUB_PAGES_CONFIG.backendUrl;
+    } else {
+      // Log error if GitHub Pages config is missing
+      console.error("GitHub Pages config is missing! Please check GitHub Actions deployment.");
+      console.error("Expected: window.GITHUB_PAGES_CONFIG.backendUrl");
+      // Don't fallback to hardcoded URL - this should be configured properly
+      return null; // This will cause a clear error message
+    }
   }
 
   // Check if we're in development mode (served from a different port than backend)
