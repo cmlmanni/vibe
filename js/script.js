@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tutorialTasks = [
     {
       title: "Task 1: Draw a Square",
+      completed: false,
       steps: [
         "First, you need to tell Python that you want to use the turtle graphics library. Use the `import` keyword to bring in the `turtle` module.",
         "Now, create an instance of a Turtle. A common convention is to name your turtle variable `t` or `my_turtle`.",
@@ -88,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       title: "Task 2: Draw a Dashed Line",
+      completed: false,
       steps: [
         "Just like before, you need to `import` the `turtle` module to get started.",
         "Create a turtle object to follow your commands.",
@@ -104,15 +106,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadTaskAndStep(taskIdx, stepIdx) {
     if (taskIdx < 0 || taskIdx >= tutorialTasks.length) return;
+
+    // Check if trying to access a locked task
+    if (taskIdx > 0 && !tutorialTasks[taskIdx - 1].completed) {
+      alert(
+        `Please complete ${
+          tutorialTasks[taskIdx - 1].title
+        } before proceeding to the next task.`
+      );
+      return;
+    }
+
     currentTaskIndex = taskIdx;
     const task = tutorialTasks[currentTaskIndex];
-    taskTitle.textContent = task.title;
+    taskTitle.textContent = task.completed ? `${task.title} ✅` : task.title;
 
     loadStep(stepIdx);
 
-    prevTaskBtn.disabled = taskIdx === 0;
-    nextTaskBtn.disabled = taskIdx === tutorialTasks.length - 1;
+    updateNavigationButtons();
     logEvent("task_loaded", { taskIndex: taskIdx });
+  }
+
+  function updateNavigationButtons() {
+    // Previous task button
+    prevTaskBtn.disabled = currentTaskIndex === 0;
+
+    // Next task button logic
+    const isLastTask = currentTaskIndex === tutorialTasks.length - 1;
+    const currentTaskCompleted = tutorialTasks[currentTaskIndex].completed;
+
+    // For tasks beyond the first, also check if previous task is completed
+    let canProceed = true;
+    if (currentTaskIndex < tutorialTasks.length - 1) {
+      canProceed = currentTaskCompleted;
+    }
+
+    nextTaskBtn.disabled = isLastTask || !canProceed;
+
+    // Update button text and styling based on completion status
+    if (!canProceed && !isLastTask) {
+      nextTaskBtn.textContent = "Complete Current Task First";
+      nextTaskBtn.classList.add("opacity-50", "cursor-not-allowed");
+    } else if (isLastTask) {
+      nextTaskBtn.textContent = "Last Task";
+      nextTaskBtn.classList.add("opacity-50", "cursor-not-allowed");
+    } else {
+      nextTaskBtn.textContent = "Next Task";
+      nextTaskBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
   }
 
   function loadStep(stepIdx) {
@@ -250,6 +291,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       logToTerminal("Run successfully.", "success");
+
+      // Check for task completion
+      checkTaskCompletion(code);
+
       logEvent("code_run", { success: true, codeSnapshot: code });
     } catch (e) {
       console.error("Skulpt execution error:", e);
@@ -913,7 +958,7 @@ t = turtle.Turtle()
 print("Turtle created!")
 t.forward(100)
 print("Moved forward 100!")
-          `;
+            `;
 
             console.log("Running turtle test code...");
             return Sk.misceval.asyncToPromise(() => {
@@ -988,4 +1033,85 @@ print("Moved forward 100!")
     document.body.appendChild(testBtn);
     console.log("Test button added to page");
   }, 1000);
+
+  function checkTaskCompletion(code) {
+    const currentTask = tutorialTasks[currentTaskIndex];
+
+    // Don't check if already completed
+    if (currentTask.completed) {
+      return;
+    }
+
+    // Normalize code for checking (remove extra whitespace, comments)
+    const normalizedCode = code
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/#.*$/gm, "")
+      .trim();
+
+    let isCompleted = false;
+
+    // Task-specific completion criteria
+    switch (currentTaskIndex) {
+      case 0: // Task 1: Draw a Square
+        // Check for basic square drawing elements
+        const hasImport =
+          normalizedCode.includes("import turtle") ||
+          normalizedCode.includes("from turtle");
+        const hasLoop =
+          normalizedCode.includes("for") && normalizedCode.includes("range(4)");
+        const hasForward =
+          normalizedCode.includes("forward") || normalizedCode.includes("fd");
+        const hasRight =
+          normalizedCode.includes("right") || normalizedCode.includes("rt");
+
+        isCompleted = hasImport && hasLoop && hasForward && hasRight;
+        break;
+
+      case 1: // Task 2: Draw a Dashed Line
+        // Check for dashed line elements
+        const hasImportDash =
+          normalizedCode.includes("import turtle") ||
+          normalizedCode.includes("from turtle");
+        const hasLoopDash =
+          normalizedCode.includes("for") && normalizedCode.includes("range(5)");
+        const hasPenUp =
+          normalizedCode.includes("penup") || normalizedCode.includes("pu");
+        const hasPenDown =
+          normalizedCode.includes("pendown") || normalizedCode.includes("pd");
+        const hasForwardDash =
+          normalizedCode.includes("forward") || normalizedCode.includes("fd");
+
+        isCompleted =
+          hasImportDash &&
+          hasLoopDash &&
+          hasPenUp &&
+          hasPenDown &&
+          hasForwardDash;
+        break;
+
+      default:
+        // For tasks not yet defined, don't auto-complete
+        isCompleted = false;
+    }
+
+    if (isCompleted) {
+      currentTask.completed = true;
+      logToTerminal(`✅ Task completed: ${currentTask.title}`, "success");
+      logEvent("task_completed", {
+        taskIndex: currentTaskIndex,
+        taskTitle: currentTask.title,
+        codeSnapshot: code,
+      });
+
+      // Update navigation buttons to reflect completion
+      updateNavigationButtons();
+
+      // Visual feedback
+      const taskTitleElement = document.getElementById("task-title");
+      if (taskTitleElement) {
+        taskTitleElement.textContent = `${currentTask.title} ✅`;
+      }
+    }
+  }
 });

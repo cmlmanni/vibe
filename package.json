@@ -1,0 +1,28 @@
+{
+  "name": "vibe-app",
+  "version": "1.0.0",
+  "description": "AI Coding Experiment Web Application",
+  "main": "vibe-backend/server.js",
+  "scripts": {
+    "start": "node vibe-backend/server.js",
+    "dev": "cd vibe-backend && npm run dev",
+    "install-backend": "cd vibe-backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-github-repo-url"
+  },
+  "keywords": [
+    "education",
+    "python",
+    "turtle-graphics",
+    "azure-openai",
+    "coding-environment"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

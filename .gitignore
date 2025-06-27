@@ -5,6 +5,10 @@
 .env.test.local
 .env.production.local
 
+# Don't ignore example files
+!.env.example
+!azure.env.example
+
 # System files
 .DS_Store
 .DS_Store?

@@ -7,14 +7,25 @@ const BACKEND_URL = (() => {
       window.location.hostname === "127.0.0.1") &&
     (window.location.port === "8000" || window.location.port === "8080");
 
-  const url = isDevelopment
-    ? "http://localhost:3000/api/openai"
-    : "/api/openai";
+  // Check if we're on Azure (azurewebsites.net domain)
+  const isAzure = window.location.hostname.includes(".azurewebsites.net");
+
+  let url;
+  if (isDevelopment) {
+    url = "http://localhost:3000/api/openai";
+  } else if (isAzure) {
+    // On Azure, use relative URL since both frontend and backend are served from same domain
+    url = "/api/openai";
+  } else {
+    // Default production setup
+    url = "/api/openai";
+  }
 
   console.log("Backend URL configuration:", {
     hostname: window.location.hostname,
     port: window.location.port,
     isDevelopment: isDevelopment,
+    isAzure: isAzure,
     selectedURL: url,
   });
 

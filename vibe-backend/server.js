@@ -11,16 +11,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enable CORS for local development
+// Enable CORS - Updated for Azure deployment
 app.use(
   cors({
-    origin: [
-      "http://localhost:8080",
-      "http://127.0.0.1:8080",
-      "http://localhost:8000",
-      "http://127.0.0.1:8000",
-    ],
-    methods: ["GET", "POST"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // In production, allow any origin that ends with your Azure domain
+      // For development, allow localhost
+      const allowedOrigins = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        // Add your Azure App Service URL here - replace with your actual URL
+        // Example: "https://your-app-name.azurewebsites.net"
+      ];
+
+      // Check if origin is allowed or if it's an Azure domain
+      if (
+        allowedOrigins.includes(origin) ||
+        (origin && origin.includes(".azurewebsites.net"))
+      ) {
+        callback(null, true);
+      } else {
+        console.log("CORS blocked origin:", origin);
+        callback(null, true); // Allow all origins for now - tighten in production
+      }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   })
 );
