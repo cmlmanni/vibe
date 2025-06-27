@@ -47,6 +47,7 @@ jobs:
           cp -r vibe-app gh-pages-build/
 
           # Create a modified index.html with GitHub Pages configuration
+          DEPLOYMENT_TIME=$(date)
           cat > gh-pages-build/index.html << EOF
           <!DOCTYPE html>
           <html lang="en">
@@ -60,7 +61,7 @@ jobs:
                 window.GITHUB_PAGES_CONFIG = {
                   backendUrl: '$AZURE_BACKEND_URL',
                   environment: 'github-pages',
-                  deploymentTime: '$(date)'
+                  deploymentTime: '$DEPLOYMENT_TIME'
                 };
                 console.log('🔍 GitHub Pages Config Loaded:', window.GITHUB_PAGES_CONFIG);
               </script>
@@ -68,6 +69,10 @@ jobs:
 
           # Append the rest of the original index.html (skip the first few lines)
           tail -n +6 index.html >> gh-pages-build/index.html
+
+          # Debug: Show the generated config in build logs
+          echo "📝 Generated GitHub Pages configuration:"
+          grep -A 10 "GITHUB_PAGES_CONFIG" gh-pages-build/index.html || echo "❌ Config not found in generated HTML"
 
           # Add GitHub Pages notice to the body
           sed -i 's|<body class="text-sm">|<body class="text-sm">\
