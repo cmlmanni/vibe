@@ -63,6 +63,25 @@ app.use(
 // Parse JSON request bodies
 app.use(express.json());
 
+// Serve static files from the parent directory (for frontend)
+const path = require("path");
+const staticPath = path.join(__dirname, "..");
+console.log("Serving static files from:", staticPath);
+app.use(
+  express.static(staticPath, {
+    index: "index.html",
+    dotfiles: "ignore",
+    setHeaders: (res, filePath) => {
+      // Set proper MIME types
+      if (filePath.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript");
+      } else if (filePath.endsWith(".css")) {
+        res.setHeader("Content-Type", "text/css");
+      }
+    },
+  })
+);
+
 // Debug middleware to log all requests in detail
 app.use((req, res, next) => {
   console.log("=== REQUEST DEBUG ===");
@@ -260,9 +279,22 @@ app.options("/api/openai", (req, res) => {
   res.sendStatus(200);
 });
 
-// Error handling for invalid routes
-app.use((req, res) => {
-  res.status(404).json({ error: `Route ${req.url} not found` });
+// SPA fallback - serve index.html for non-API routes
+app.get("*", (req, res) => {
+  // Only serve index.html for non-API routes
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: `API route ${req.url} not found` });
+  }
+
+  // Serve index.html for all other routes (SPA behavior)
+  const indexPath = path.join(__dirname, "..", "index.html");
+  console.log("Serving index.html for SPA route:", req.path);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error("Error serving index.html:", err);
+      res.status(500).send("Error loading application");
+    }
+  });
 });
 
 // Global error handler
