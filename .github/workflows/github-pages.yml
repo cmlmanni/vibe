@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -28,12 +28,12 @@ jobs:
         run: |
           # Create a build directory for GitHub Pages
           mkdir -p gh-pages-build
-          
+
           # Copy static files (HTML, CSS, JS)
           cp -r css gh-pages-build/
           cp -r js gh-pages-build/
           cp -r vibe-app gh-pages-build/
-          
+
           # Create a modified index.html with GitHub Pages configuration
           cat > gh-pages-build/index.html << 'EOF'
           <!DOCTYPE html>
@@ -46,15 +46,15 @@ jobs:
               <!-- GitHub Pages Configuration -->
               <script>
                 window.GITHUB_PAGES_CONFIG = {
-                  backendUrl: 'https://vibe-bphahmfzbfc8h0c7.westeurope-01.azurewebsites.net/api/openai',
+                  backendUrl: '${{ secrets.AZURE_BACKEND_URL || "" }}',
                   environment: 'github-pages'
                 };
               </script>
           EOF
-          
+
           # Append the rest of the original index.html (skip the first few lines)
           tail -n +6 index.html >> gh-pages-build/index.html
-          
+
           # Add GitHub Pages notice to the body
           sed -i 's|<body class="text-sm">|<body class="text-sm">\
             <div id="github-pages-notice" class="bg-blue-600 text-white text-center py-2 text-xs">\
@@ -64,7 +64,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './gh-pages-build'
+          path: "./gh-pages-build"
 
   deploy:
     environment:

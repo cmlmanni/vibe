@@ -2,9 +2,9 @@
 // Uses relative URL for production (same origin) or configurable for development
 const BACKEND_URL = (() => {
   // Check if we're on GitHub Pages
-  const isGitHubPages = window.location.hostname.includes('.github.io');
+  const isGitHubPages = window.location.hostname.includes(".github.io");
   if (isGitHubPages && window.GITHUB_PAGES_CONFIG) {
-    console.log('Using GitHub Pages backend configuration');
+    console.log("Using GitHub Pages backend configuration");
     return window.GITHUB_PAGES_CONFIG.backendUrl;
   }
 

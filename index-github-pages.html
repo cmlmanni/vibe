@@ -7,10 +7,10 @@
 
     <!-- GitHub Pages Configuration -->
     <script>
-      // GitHub Pages configuration - points to Azure backend
+      // GitHub Pages configuration - will be populated by GitHub Actions
       window.GITHUB_PAGES_CONFIG = {
-        backendUrl: 'https://vibe-bphahmfzbfc8h0c7.westeurope-01.azurewebsites.net/api/openai',
-        environment: 'github-pages'
+        backendUrl: "BACKEND_URL_PLACEHOLDER",
+        environment: "github-pages",
       };
     </script>
 
@@ -42,7 +42,10 @@
   </head>
   <body class="text-sm">
     <!-- GitHub Pages Notice -->
-    <div id="github-pages-notice" class="bg-blue-600 text-white text-center py-2 text-xs">
+    <div
+      id="github-pages-notice"
+      class="bg-blue-600 text-white text-center py-2 text-xs"
+    >
       🚀 Running on GitHub Pages - Backend powered by Azure
     </div>
 

@@ -68,6 +68,14 @@ IF EXIST "%DEPLOYMENT_TARGET%\vibe-backend\package.json" (
   popd
 )
 
+:: 3. Install npm packages for root (if needed)
+IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
+  pushd "%DEPLOYMENT_TARGET%"
+  call :ExecuteCmd npm run install-backend
+  IF !ERRORLEVEL! NEQ 0 goto error
+  popd
+)
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 goto end
 

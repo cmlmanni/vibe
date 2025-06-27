@@ -2,6 +2,11 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+console.log("Starting Vibe backend server...");
+console.log("Node.js version:", process.version);
+console.log("Environment:", process.env.NODE_ENV || "development");
+console.log("Port:", process.env.PORT || 3000);
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -26,7 +31,7 @@ app.use(
         "http://localhost:8000",
         "http://127.0.0.1:8000",
       ];
-      
+
       // Add frontend URL from environment variable if available
       if (process.env.FRONTEND_URL) {
         allowedOrigins.push(process.env.FRONTEND_URL);
@@ -288,7 +293,25 @@ app.use("*", (req, res) => {
 });
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log(`Health check available at http://localhost:${port}/api/health`);
+app
+  .listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    console.log(
+      `Health check available at http://localhost:${port}/api/health`
+    );
+  })
+  .on("error", (err) => {
+    console.error("Server failed to start:", err);
+    process.exit(1);
+  });
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
 });

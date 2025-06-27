@@ -1,0 +1,7 @@
+# Azure App Service Configuration
+
+# This file tells Azure how to start your Node.js application
+
+# Startup Command
+
+node vibe-backend/server.js
