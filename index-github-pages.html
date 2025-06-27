@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Coding Experiment Prototype</title>
+
+    <!-- GitHub Pages Configuration -->
+    <script>
+      // GitHub Pages configuration - points to Azure backend
+      window.GITHUB_PAGES_CONFIG = {
+        backendUrl: 'https://vibe-bphahmfzbfc8h0c7.westeurope-01.azurewebsites.net/api/openai',
+        environment: 'github-pages'
+      };
+    </script>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Link to your custom CSS file -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CodeMirror for the code editor -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/theme/dracula.min.css"
+    />
+  </head>
+  <body class="text-sm">
+    <!-- GitHub Pages Notice -->
+    <div id="github-pages-notice" class="bg-blue-600 text-white text-center py-2 text-xs">
+      🚀 Running on GitHub Pages - Backend powered by Azure
+    </div>
+
+    <!-- Rest of your existing HTML content from index.html -->
+    <!-- This would be populated by the GitHub Actions workflow -->
+  </body>
+</html>

@@ -1,6 +1,13 @@
 // Backend API URL configuration
 // Uses relative URL for production (same origin) or configurable for development
 const BACKEND_URL = (() => {
+  // Check if we're on GitHub Pages
+  const isGitHubPages = window.location.hostname.includes('.github.io');
+  if (isGitHubPages && window.GITHUB_PAGES_CONFIG) {
+    console.log('Using GitHub Pages backend configuration');
+    return window.GITHUB_PAGES_CONFIG.backendUrl;
+  }
+
   // Check if we're in development mode (served from a different port than backend)
   const isDevelopment =
     (window.location.hostname === "localhost" ||
@@ -26,6 +33,7 @@ const BACKEND_URL = (() => {
     port: window.location.port,
     isDevelopment: isDevelopment,
     isAzure: isAzure,
+    isGitHubPages: isGitHubPages,
     selectedURL: url,
   });
 

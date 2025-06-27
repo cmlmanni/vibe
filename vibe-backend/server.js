@@ -34,11 +34,15 @@ app.use(
       if (process.env.FRONTEND_URL_AZURE) {
         allowedOrigins.push(process.env.FRONTEND_URL_AZURE);
       }
+      if (process.env.FRONTEND_URL_GITHUB_PAGES) {
+        allowedOrigins.push(process.env.FRONTEND_URL_GITHUB_PAGES);
+      }
 
-      // Check if origin is allowed or if it's an Azure domain
+      // Check if origin is allowed or if it's an Azure domain or GitHub Pages
       if (
         allowedOrigins.includes(origin) ||
-        (origin && origin.includes(".azurewebsites.net"))
+        (origin && origin.includes(".azurewebsites.net")) ||
+        (origin && origin.includes(".github.io"))
       ) {
         callback(null, true);
       } else {
