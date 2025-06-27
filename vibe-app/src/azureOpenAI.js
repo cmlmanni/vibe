@@ -1,7 +1,25 @@
-// For production, replace with the actual backend URL
+// Backend API URL configuration
+// Uses relative URL for production (same origin) or configurable for development
+const BACKEND_URL = (() => {
+  // Check if we're in development mode (served from a different port than backend)
+  const isDevelopment =
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1") &&
+    (window.location.port === "8000" || window.location.port === "8080");
 
-// For local testing with Express backend
-const BACKEND_URL = "http://localhost:3000/api/openai";
+  const url = isDevelopment
+    ? "http://localhost:3000/api/openai"
+    : "/api/openai";
+
+  console.log("Backend URL configuration:", {
+    hostname: window.location.hostname,
+    port: window.location.port,
+    isDevelopment: isDevelopment,
+    selectedURL: url,
+  });
+
+  return url;
+})();
 
 /**
  * Sends a request to Azure OpenAI via Express backend

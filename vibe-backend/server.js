@@ -14,7 +14,12 @@ app.use((req, res, next) => {
 // Enable CORS for local development
 app.use(
   cors({
-    origin: ["http://localhost:8080", "http://127.0.0.1:8080"],
+    origin: [
+      "http://localhost:8080",
+      "http://127.0.0.1:8080",
+      "http://localhost:8000",
+      "http://127.0.0.1:8000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -22,6 +27,18 @@ app.use(
 
 // Parse JSON request bodies
 app.use(express.json());
+
+// Debug middleware to log all requests in detail
+app.use((req, res, next) => {
+  console.log("=== REQUEST DEBUG ===");
+  console.log("Method:", req.method);
+  console.log("Path:", req.path);
+  console.log("URL:", req.url);
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  console.log("====================");
+  next();
+});
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -36,6 +53,15 @@ app.get("/api/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
     credentialsConfigured: !!credentialsConfigured,
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Configuration endpoint for frontend
+app.get("/api/config", (req, res) => {
+  res.status(200).json({
+    backendUrl: "/api/openai", // Relative URL for same-origin requests
+    version: "1.0.0",
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
@@ -184,6 +210,21 @@ app.post("/api/openai", async (req, res) => {
   }
 });
 
+// Handle CORS preflight requests explicitly
+app.options("/api/openai", (req, res) => {
+  console.log("=== OPTIONS PREFLIGHT ===");
+  console.log("Origin:", req.headers.origin);
+  console.log("Method:", req.headers["access-control-request-method"]);
+  console.log("Headers:", req.headers["access-control-request-headers"]);
+  console.log("========================");
+
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(200);
+});
+
 // Error handling for invalid routes
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.url} not found` });
@@ -198,6 +239,21 @@ app.use((err, req, res, next) => {
       process.env.NODE_ENV === "production"
         ? "An unexpected error occurred"
         : err.message,
+  });
+});
+
+// Catch-all route for debugging 404s
+app.use("*", (req, res) => {
+  console.log("=== 404 CATCH-ALL ===");
+  console.log("Method:", req.method);
+  console.log("Path:", req.path);
+  console.log("URL:", req.url);
+  console.log("===================");
+  res.status(404).json({
+    error: "Not found",
+    method: req.method,
+    path: req.path,
+    url: req.url,
   });
 });
 
