@@ -25,9 +25,11 @@ jobs:
         uses: actions/configure-pages@v4
 
       - name: Create GitHub Pages build
+        env:
+          AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
         run: |
           # Debug: Check if secret is set (without revealing the value)
-          if [ -z "${{ secrets.AZURE_BACKEND_URL }}" ]; then
+          if [ -z "$AZURE_BACKEND_URL" ]; then
             echo "❌ AZURE_BACKEND_URL secret is not set or empty"
             exit 1
           else
@@ -43,7 +45,7 @@ jobs:
           cp -r vibe-app gh-pages-build/
 
           # Create a modified index.html with GitHub Pages configuration
-          cat > gh-pages-build/index.html << 'EOF'
+          cat > gh-pages-build/index.html << EOF
           <!DOCTYPE html>
           <html lang="en">
             <head>
@@ -54,7 +56,7 @@ jobs:
               <!-- GitHub Pages Configuration -->
               <script>
                 window.GITHUB_PAGES_CONFIG = {
-                  backendUrl: '${{ secrets.AZURE_BACKEND_URL }}',
+                  backendUrl: '$AZURE_BACKEND_URL',
                   environment: 'github-pages'
                 };
               </script>
