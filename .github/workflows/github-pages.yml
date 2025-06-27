@@ -46,11 +46,11 @@ jobs:
           cp -r js gh-pages-build/
           cp -r vibe-app gh-pages-build/          # Create a modified index.html with GitHub Pages configuration
           DEPLOYMENT_TIME=$(date)
-          
+
           # Create the GitHub Pages version with injected configuration
           # Use a simpler approach - replace a placeholder in the original file
           cp index.html gh-pages-build/index.html
-          
+
           # Insert the GitHub Pages configuration script right after the opening <head> tag
           sed -i '/<head>/a\
               <!-- GitHub Pages Configuration -->\

@@ -1,9 +1,10 @@
 // Backend API URL configuration
 // Uses relative URL for production (same origin) or configurable for development
 const BACKEND_URL = (() => {
+  // Check if we're on GitHub Pages
+  const isGitHubPages = window.location.hostname.includes(".github.io");
+  
   try {
-    // Check if we're on GitHub Pages
-    const isGitHubPages = window.location.hostname.includes(".github.io");
     console.log("🔍 Environment detection:", {
       hostname: window.location.hostname,
       isGitHubPages: isGitHubPages,
