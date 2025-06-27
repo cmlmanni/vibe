@@ -1,6 +1,8 @@
-// Backend API URL configuration
-// Uses relative URL for production (same origin) or configurable for development
-const BACKEND_URL = (() => {
+/**
+ * Dynamic backend URL detection - called fresh each time to ensure config is available
+ * @returns {string} The backend URL to use for API calls
+ */
+function getBackendURL() {
   // Check if we're on GitHub Pages
   const isGitHubPages = window.location.hostname.includes(".github.io");
 
@@ -9,6 +11,7 @@ const BACKEND_URL = (() => {
       hostname: window.location.hostname,
       isGitHubPages: isGitHubPages,
       userAgent: navigator.userAgent.substring(0, 50),
+      configAvailable: !!window.GITHUB_PAGES_CONFIG,
     });
 
     if (isGitHubPages) {
@@ -75,7 +78,7 @@ const BACKEND_URL = (() => {
   });
 
   return url;
-})();
+}
 
 /**
  * Sends a request to Azure OpenAI via Express backend
@@ -92,8 +95,11 @@ export async function getAIResponse(
   temperature = 0.7
 ) {
   try {
+    // Get backend URL dynamically each time to ensure config is available
+    const backendURL = getBackendURL();
+    
     // Check if backend URL is properly configured
-    if (!BACKEND_URL || BACKEND_URL === "GITHUB_PAGES_CONFIG_MISSING") {
+    if (!backendURL || backendURL === "GITHUB_PAGES_CONFIG_MISSING") {
       throw new Error(
         "Backend URL not configured. Please check your deployment configuration."
       );
@@ -104,7 +110,7 @@ export async function getAIResponse(
         prompt.substring(0, 50) + (prompt.length > 50 ? "..." : ""),
       systemPromptPreview:
         systemPrompt.substring(0, 50) + (systemPrompt.length > 50 ? "..." : ""),
-      backendURL: BACKEND_URL,
+      backendURL: backendURL,
     });
 
     // Enhanced prompt for better code formatting
@@ -113,9 +119,9 @@ export async function getAIResponse(
       "\n\nPlease make sure any code is properly formatted between ```python and ``` markers.";
 
     // Show a detailed log of what we're sending
-    console.log(`POST ${BACKEND_URL}`);
+    console.log(`POST ${backendURL}`);
 
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch(backendURL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
