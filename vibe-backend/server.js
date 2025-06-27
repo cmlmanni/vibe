@@ -25,9 +25,15 @@ app.use(
         "http://127.0.0.1:8080",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
-        // Add your Azure App Service URL here - replace with your actual URL
-        // Example: "https://your-app-name.azurewebsites.net"
       ];
+      
+      // Add frontend URL from environment variable if available
+      if (process.env.FRONTEND_URL) {
+        allowedOrigins.push(process.env.FRONTEND_URL);
+      }
+      if (process.env.FRONTEND_URL_AZURE) {
+        allowedOrigins.push(process.env.FRONTEND_URL_AZURE);
+      }
 
       // Check if origin is allowed or if it's an Azure domain
       if (
