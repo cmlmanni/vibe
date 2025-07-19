@@ -134,3 +134,43 @@
   background-color: var(--blue-accent);
   border-color: var(--blue-accent);
 }
+
+/* Compact corner controls */
+.sidebar-corner-controls {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 20;
+}
+
+.ai-mode-select-compact {
+  background-color: rgba(60, 60, 60, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(4px);
+  min-width: 90px;
+}
+
+.ai-mode-select-compact:focus,
+.ai-mode-select-compact:hover {
+  outline: none;
+  border-color: var(--blue-accent);
+  background-color: var(--sidebar-bg);
+}
+
+/* Make sure sidebar has relative positioning */
+.right-sidebar {
+  position: relative;
+  padding-top: var(--space-lg); /* Make room for corner dropdown */
+}
+
+/* Adjust chat container to not overlap */
+.chat-container {
+  margin-top: var(--space-sm);
+  /* Ensure it doesn't overlap with corner controls */
+}

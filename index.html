@@ -178,15 +178,25 @@
         id="right-sidebar"
         class="right-sidebar bg-[var(--sidebar-bg)] w-80 p-4 flex flex-col flex-shrink-0 border-l border-[var(--border-color)]"
       >
-        <div class="mb-2">
-          <label class="block text-xs font-semibold mb-1">AI Assistant</label>
-          <select
-            id="ai-mode-select"
-            class="bg-[#3c3c3c] border border-transparent rounded p-1 text-xs w-full"
-          >
-            <option value="assistant-a">Assistant A</option>
-            <option value="assistant-b">Assistant B</option>
-          </select>
+        <!-- AI Assistant Section -->
+        <div class="ai-assistant-section">
+          <div class="mb-2">
+            <span
+              class="block text-xs font-semibold mb-1 text-gray-300 uppercase tracking-wider"
+              >AI ASSISTANT</span
+            >
+            <!-- Even more compact corner version -->
+            <div class="sidebar-corner-controls">
+              <select
+                id="ai-mode-select"
+                class="ai-mode-select-compact"
+                title="Choose AI Assistant"
+              >
+                <option value="assistant-a">Assistant A</option>
+                <option value="assistant-b">Assistant B</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div
           id="chat-container"
