@@ -28,15 +28,29 @@ document.addEventListener("DOMContentLoaded", () => {
     lineNumbers: true,
     indentUnit: 4,
     theme: "dracula",
+    lineWrapping: true,
+    viewportMargin: Infinity,
+    scrollbarStyle: "native",
+    extraKeys: {
+      "Ctrl-Space": "autocomplete",
+    },
   });
 
   // Make it accessible globally
   window.editor = codeMirrorEditor;
 
-  // Set default code with speed control example
+  // Set default code
   codeMirrorEditor.setValue(`import turtle
 
 # Your code here`);
+
+  // IMPORTANT: Force CodeMirror to use available space
+  setTimeout(() => {
+    // Set CodeMirror to fill its container
+    codeMirrorEditor.setSize("100%", "100%");
+    codeMirrorEditor.refresh();
+    console.log("CodeMirror sized to fill container");
+  }, 100);
 
   // --- EVENT LOGGING SYSTEM ---
   let eventLog = [];
@@ -785,86 +799,202 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- RESIZABLE PANELS ---
   function setupResizablePanels() {
-    // Basic implementation to prevent errors
-    // Can be extended later for actual resizable functionality
-    console.log("Resizable panels setup");
+    console.log("Setting up resizable panels");
+
+    // Horizontal resizers (left and right sidebars)
+    setupHorizontalResizer("resizer-left", "left-sidebar", "main-content");
+    setupHorizontalResizer("resizer-right", "main-content", "right-sidebar");
+
+    // Vertical resizer (editor vs output) - Fix: use IDs not class names
+    setupVerticalResizer("vertical-resizer", "editor-pane", "output-pane");
   }
 
-  // --- TURTLE CANVAS MANAGEMENT ---
-  function refreshTurtleContainer() {
-    const container = document.getElementById("turtle-container");
-    if (!container) {
-      console.error("Turtle container not found");
+  // Add throttling utility for smooth resizing
+  function throttle(func, limit) {
+    let inThrottle;
+    return function () {
+      const args = arguments;
+      const context = this;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => (inThrottle = false), limit);
+      }
+    };
+  }
+
+  // Create throttled version of refreshTurtleContainer
+  const throttledRefreshTurtleContainer = throttle(refreshTurtleContainer, 16); // ~60fps
+
+  function setupHorizontalResizer(resizerId, leftElementId, rightElementId) {
+    const resizer = document.getElementById(resizerId);
+    const leftElement = document.getElementById(leftElementId);
+    const rightElement = document.getElementById(rightElementId);
+
+    if (!resizer || !leftElement || !rightElement) {
+      console.warn(`Horizontal resizer setup failed: ${resizerId}`);
       return;
     }
 
-    // Find the parent container
-    const parentContainer = container.parentElement;
+    let isResizing = false;
+    let startX = 0;
+    let startLeftWidth = 0;
+    let startRightWidth = 0;
 
-    // Calculate available size - provide fallback dimensions
-    const containerWidth = parentContainer.clientWidth || 400;
-    const containerHeight = parentContainer.clientHeight || 300;
+    resizer.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      startX = e.clientX;
 
-    console.log(
-      `Refreshing turtle container to ${containerWidth}x${containerHeight}`
-    );
+      const leftRect = leftElement.getBoundingClientRect();
+      const rightRect = rightElement.getBoundingClientRect();
 
-    // Set container dimensions
-    container.style.width = containerWidth + "px";
-    container.style.height = containerHeight + "px";
+      startLeftWidth = leftRect.width;
+      startRightWidth = rightRect.width;
 
-    console.log("Container dimensions updated");
+      document.body.classList.add("resizing");
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      e.preventDefault();
+    });
+
+    function handleMouseMove(e) {
+      if (!isResizing) return;
+
+      const deltaY = e.clientY - startY;
+      const newTopHeight = startTopHeight + deltaY;
+      const newBottomHeight = startBottomHeight - deltaY;
+
+      // Apply min height constraints
+      const minHeight = 150;
+
+      if (newTopHeight >= minHeight && newBottomHeight >= minHeight) {
+        topElement.style.height = `${newTopHeight}px`;
+        bottomElement.style.height = `${newBottomHeight}px`;
+
+        // Update flex properties to override CSS
+        topElement.style.flex = "none";
+        bottomElement.style.flex = "none";
+
+        // Immediately refresh CodeMirror during resize
+        refreshCodeMirrorSize();
+        refreshTurtleContainer();
+      }
+    }
+
+    function handleMouseUp() {
+      isResizing = false;
+      document.body.classList.remove("resizing");
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      // Final refresh after resize is complete
+      setTimeout(() => {
+        refreshCodeMirrorSize();
+        refreshTurtleContainer();
+      }, 50);
+    }
   }
 
-  // Debug function to check container status
-  function debugContainerStatus() {
-    const container = document.getElementById("turtle-container");
-    const parentContainer = container?.parentElement;
+  function setupVerticalResizer(resizerId, topElementId, bottomElementId) {
+    const resizer = document.getElementById(resizerId);
+    const topElement = document.getElementById(topElementId);
+    const bottomElement = document.getElementById(bottomElementId);
 
-    console.log("=== CONTAINER DEBUG ===");
-    console.log("Container element:", container);
-    console.log(
-      "Container dimensions:",
-      container ? `${container.offsetWidth}x${container.offsetHeight}` : "N/A"
-    );
-    console.log(
-      "Container CSS dimensions:",
-      container ? `${container.style.width} x ${container.style.height}` : "N/A"
-    );
-    console.log("Parent container:", parentContainer);
-    console.log(
-      "Parent container dimensions:",
-      parentContainer
-        ? `${parentContainer.clientWidth}x${parentContainer.clientHeight}`
-        : "N/A"
-    );
-    console.log("Skulpt available:", typeof Sk !== "undefined");
-    console.log(
-      "TurtleGraphics available:",
-      typeof Sk !== "undefined" && Sk.TurtleGraphics
-    );
-    console.log("======================");
-  }
-
-  // Add resize observer to automatically resize container when parent changes
-  function setupContainerResizeObserver() {
-    const container = document.getElementById("turtle-container");
-    const parentContainer = container?.parentElement;
-
-    if (!container || !parentContainer) {
+    if (!resizer || !topElement || !bottomElement) {
+      console.warn(`Vertical resizer setup failed: ${resizerId}`);
       console.warn(
-        "Container or parent container not found for resize observer"
+        `Elements found - Resizer: ${!!resizer}, Top: ${!!topElement}, Bottom: ${!!bottomElement}`
       );
       return;
     }
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        refreshTurtleContainer();
-      }
+    let isResizing = false;
+    let startY = 0;
+    let startTopHeight = 0;
+    let startBottomHeight = 0;
+
+    resizer.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      startY = e.clientY;
+
+      const topRect = topElement.getBoundingClientRect();
+      const bottomRect = bottomElement.getBoundingClientRect();
+
+      startTopHeight = topRect.height;
+      startBottomHeight = bottomRect.height;
+
+      document.body.classList.add("resizing");
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      e.preventDefault();
     });
 
-    resizeObserver.observe(parentContainer);
+    function handleMouseMove(e) {
+      if (!isResizing) return;
+
+      const deltaY = e.clientY - startY;
+      const newTopHeight = startTopHeight + deltaY;
+      const newBottomHeight = startBottomHeight - deltaY;
+
+      // Apply min height constraints
+      const minHeight = 150; // Increased minimum height for better usability
+
+      if (newTopHeight >= minHeight && newBottomHeight >= minHeight) {
+        topElement.style.height = `${newTopHeight}px`;
+        bottomElement.style.height = `${newBottomHeight}px`;
+
+        // Update flex properties to override CSS
+        topElement.style.flex = "none";
+        bottomElement.style.flex = "none";
+
+        // Refresh CodeMirror and turtle container after a short delay
+        // Initialize the container once the page loads
+        setTimeout(() => {
+          refreshTurtleContainer();
+          refreshCodeMirrorSize();
+          debugContainerStatus();
+        }, 100);
+
+        // Also add a window resize listener
+        window.addEventListener("resize", () => {
+          refreshCodeMirrorSize();
+          refreshTurtleContainer();
+        });
+      }
+    }
+
+    function handleMouseUp() {
+      isResizing = false;
+      document.body.classList.remove("resizing");
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      // Final refresh after resize is complete
+      setTimeout(() => {
+        refreshCodeMirrorSize();
+        refreshTurtleContainer();
+      }, 50);
+    }
+  }
+
+  function setupContainerResizeObserver() {
+    const container = document.getElementById("turtle-container");
+    if (!container) return;
+
+    // Use ResizeObserver to watch for container size changes
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(() => {
+        refreshTurtleContainer();
+        refreshCodeMirrorSize(); // Add CodeMirror refresh here too
+      });
+
+      resizeObserver.observe(container.parentElement);
+      console.log("Container resize observer set up");
+    }
   }
 
   // --- INITIALIZATION ---
@@ -883,10 +1013,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize the container once the page loads
   setTimeout(() => {
     refreshTurtleContainer();
+    refreshCodeMirrorSize(); // Add this line
     debugContainerStatus(); // Debug container status
   }, 100); // Small delay to ensure all DOM elements are fully rendered
 
-  // Setup resizable panels
+  // Setup resizable panels - IMPORTANT: Call this function
   setupResizablePanels();
 
   // Setup container resize observer
@@ -1113,5 +1244,61 @@ document.addEventListener("DOMContentLoaded", () => {
         taskTitleElement.textContent = `${currentTask.title} ✅`;
       }
     }
+  }
+
+  // Add a function to properly size CodeMirror
+  function refreshCodeMirrorSize() {
+    if (window.editor) {
+      // Force CodeMirror to fill its container completely
+      window.editor.setSize("100%", "100%");
+      window.editor.refresh();
+      console.log("CodeMirror size refreshed to fill container");
+    }
+  }
+
+  function refreshTurtleContainer() {
+    const container = document.getElementById("turtle-container");
+    if (!container) {
+      console.error("Turtle container not found");
+      return;
+    }
+
+    // Find the parent container (canvas-container)
+    const parentContainer = container.parentElement;
+    if (!parentContainer) {
+      console.error("Parent container not found");
+      return;
+    }
+
+    // Calculate available size - provide fallback dimensions
+    const containerWidth = parentContainer.clientWidth || 400;
+    const containerHeight = parentContainer.clientHeight || 300;
+
+    console.log(
+      `Refreshing turtle container to ${containerWidth}x${containerHeight}`
+    );
+
+    // Update container dimensions
+    container.style.width = containerWidth + "px";
+    container.style.height = containerHeight + "px";
+
+    // Update Skulpt TurtleGraphics configuration for NEW canvases only
+    if (typeof Sk !== "undefined") {
+      Sk.TurtleGraphics = {
+        target: "turtle-container",
+        width: containerWidth,
+        height: containerHeight,
+        animate: true,
+        delay: 100,
+      };
+      console.log(
+        "Updated Skulpt TurtleGraphics configuration for new canvases"
+      );
+    }
+
+    // Force CodeMirror refresh
+    refreshCodeMirrorSize();
+
+    console.log("Container dimensions updated");
   }
 });
