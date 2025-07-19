@@ -4,6 +4,51 @@
   border-radius: 0.375rem;
   max-width: 100%;
   color: var(--text-color);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.chat-message .text-sm {
+  line-height: 1.6;
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+}
+
+.chat-message code {
+  background-color: #374151;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.875em;
+}
+
+.chat-message strong {
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.chat-message em {
+  font-style: italic;
+  color: #d1d5db;
+}
+
+/* Ensure proper spacing for lists and paragraphs */
+.chat-message p {
+  margin-bottom: 0.5rem;
+}
+
+.chat-message p:last-child {
+  margin-bottom: 0;
+}
+
+/* Better formatting for numbered lists */
+.chat-message ol,
+.chat-message ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.chat-message li {
+  margin-bottom: 0.25rem;
 }
 
 .user-message {

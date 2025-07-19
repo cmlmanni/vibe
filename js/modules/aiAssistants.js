@@ -7,6 +7,29 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
       this.isGenerating = false;
     }
 
+    // Enhanced formatting function
+    formatMessageContent(content) {
+      let formatted = content
+        // Bold text
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        // Italic text
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        // Inline code
+        .replace(
+          /`(.*?)`/g,
+          '<code class="bg-gray-700 px-1 rounded text-xs font-mono">$1</code>'
+        )
+        // Numbered lists (1. 2. 3. etc.)
+        .replace(
+          /^(\d+\.\s+)/gm,
+          '<span class="font-semibold text-blue-400">$1</span>'
+        )
+        // Convert line breaks to HTML
+        .replace(/\n/g, "<br>");
+
+      return formatted;
+    }
+
     // Create chat messages with code suggestion capability
     createChatMessage(content, sender, codeBlock = null) {
       const chatContainer = domElements.chatContainer;
@@ -106,11 +129,13 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
 
       messageDiv.appendChild(headerDiv);
 
-      // Add the main message content
-      const contentP = document.createElement("p");
-      contentP.textContent = content;
-      contentP.classList.add("text-sm", "mb-2");
-      messageDiv.appendChild(contentP);
+      // FIX: Replace the content paragraph section with proper formatting
+      const contentDiv = document.createElement("div");
+      contentDiv.classList.add("text-sm", "mb-2", "leading-relaxed");
+
+      // Use the enhanced formatting
+      contentDiv.innerHTML = this.formatMessageContent(content);
+      messageDiv.appendChild(contentDiv);
 
       // Add code block with "Apply" button if provided
       if (codeBlock && sender === "ai") {
@@ -297,8 +322,12 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
     }
 
     async getSuggestion(userPrompt) {
+      console.log("🚀 VibecodingAssistant processing:", userPrompt);
       if (this.isGenerating) return;
-      eventLogger.logEvent("ai_prompt", { prompt: userPrompt });
+      eventLogger.logEvent("ai_prompt", {
+        prompt: userPrompt,
+        mode: "vibecoding",
+      });
       const response = await this.fetchFromAI(this.systemPrompt, userPrompt);
       eventLogger.logEvent("ai_response", { response });
 
@@ -353,8 +382,12 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
     }
 
     async getSuggestion(userPrompt) {
+      console.log("🤔 ReflectiveAssistant processing:", userPrompt);
       if (this.isGenerating) return;
-      eventLogger.logEvent("ai_prompt", { prompt: userPrompt });
+      eventLogger.logEvent("ai_prompt", {
+        prompt: userPrompt,
+        mode: "reflective",
+      });
       const response = await this.fetchFromAI(this.systemPrompt, userPrompt);
       eventLogger.logEvent("ai_response", { response });
       if (response.type === "text") {
@@ -369,7 +402,14 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
   // Initialize AI assistants
   const vibecodingAI = new VibecodingAssistant();
   const reflectiveAI = new ReflectiveAssistant();
-  let currentAI = vibecodingAI;
+
+  // Fix: Initialize currentAI based on the actual select value
+  function getCurrentAIFromSelect() {
+    const selectedValue = domElements.aiModeSelect?.value || "vibecoding";
+    return selectedValue === "vibecoding" ? vibecodingAI : reflectiveAI;
+  }
+
+  let currentAI = getCurrentAIFromSelect();
 
   // Make currentAI accessible globally for UI interaction
   window.currentAI = currentAI;
@@ -385,7 +425,11 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
     currentAI.createChatMessage(userPrompt, "user");
 
     // Get AI response
-    console.log("Sending user input to AI assistant:", userPrompt);
+    console.log(
+      "Sending user input to AI assistant:",
+      currentAI.constructor.name,
+      userPrompt
+    );
     currentAI.getSuggestion(userPrompt);
   }
 
@@ -401,21 +445,33 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
       if (e.key === "Enter") handleGetSuggestion();
     });
 
-    // AI mode selection change
+    // AI mode selection change - FIX: Update currentAI properly
     domElements.aiModeSelect?.addEventListener("change", (e) => {
-      currentAI = e.target.value === "vibecoding" ? vibecodingAI : reflectiveAI;
+      const newMode = e.target.value;
+      currentAI = newMode === "vibecoding" ? vibecodingAI : reflectiveAI;
       window.currentAI = currentAI; // Update the global reference
-      eventLogger.logEvent("ai_mode_changed", { newMode: e.target.value });
+
+      console.log(
+        `AI mode changed to: ${newMode} (${currentAI.constructor.name})`
+      );
+      eventLogger.logEvent("ai_mode_changed", { newMode: newMode });
     });
   }
 
   console.log("AI assistants initialized");
+  console.log(
+    "Initial AI mode:",
+    domElements.aiModeSelect?.value || "vibecoding"
+  );
+  console.log("Current AI:", currentAI.constructor.name);
 
   return {
     handleGetSuggestion,
     setupEventListeners,
     vibecodingAI,
     reflectiveAI,
-    currentAI,
+    get currentAI() {
+      return currentAI;
+    }, // Use getter to always return current value
   };
 }
