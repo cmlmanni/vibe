@@ -4,20 +4,27 @@ import { setupCodeMirror } from "./modules/codeMirrorSetup.js";
 import { initializeEventLogging } from "./modules/eventLogging.js";
 import { initializeTutorial } from "./modules/tutorialLogic.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";
-import { initializeAIAssistants } from "./modules/ai/index.js"; // Updated import path
+import { initializeAIAssistants } from "./modules/aiAssistants.js";
 import { setupResizablePanels } from "./modules/resizablePanels.js";
 import { initializeContainerManagement } from "./modules/containerManagement.js";
+import { initializeExperimentConfig } from "./modules/experimentConfig.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Initializing VIBE application...");
+  console.log("Initializing VIBE experimental application...");
 
   // Initialize all modules
   const domElements = initializeDOMElements();
   const editor = setupCodeMirror(domElements.codeEditorTextArea);
   const eventLogger = initializeEventLogging();
+  const experimentConfig = initializeExperimentConfig(); // NEW
   const tutorial = initializeTutorial(domElements, eventLogger);
   const skulptRunner = initializeSkulpt(domElements, eventLogger);
-  const aiAssistants = initializeAIAssistants(domElements, eventLogger, editor);
+  const aiAssistants = initializeAIAssistants(
+    domElements,
+    eventLogger,
+    editor,
+    experimentConfig
+  ); // Updated
   const containerManager = initializeContainerManagement(domElements);
 
   // Setup resizable panels
@@ -35,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize tutorial
   tutorial.loadTaskAndStep(0, 0);
 
-  console.log("VIBE application initialized successfully");
+  console.log("VIBE experimental application initialized successfully");
 });
 
 function setupEventListeners(

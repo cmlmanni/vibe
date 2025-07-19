@@ -1,7 +1,12 @@
 /* filepath: /js/modules/aiAssistants.js */
 import { getAIResponse } from "../../vibe-app/src/azureOpenAI.js";
 
-export function initializeAIAssistants(domElements, eventLogger, editor) {
+export function initializeAIAssistants(
+  domElements,
+  eventLogger,
+  editor,
+  experimentConfig
+) {
   class AIAssistant {
     constructor() {
       this.isGenerating = false;
@@ -467,60 +472,78 @@ You should NOT write code for users, but guide them to discover solutions themse
   const vibecodingAI = new VibecodingAssistant();
   const reflectiveAI = new ReflectiveAssistant();
 
-  // Fix: Initialize currentAI based on the actual select value
-  function getCurrentAIFromSelect() {
-    const selectedValue = domElements.aiModeSelect?.value || "vibecoding";
-    return selectedValue === "vibecoding" ? vibecodingAI : reflectiveAI;
+  // Initialize currentAI based on the experimental condition
+  function getCurrentAIFromSelection() {
+    const selectedAssistant = domElements.aiModeSelect?.value || "assistant-a";
+    const aiType = experimentConfig.getAITypeForAssistant(selectedAssistant);
+    return aiType === "vibecoding" ? vibecodingAI : reflectiveAI;
   }
 
-  let currentAI = getCurrentAIFromSelect();
-
-  // Make currentAI accessible globally for UI interaction
+  let currentAI = getCurrentAIFromSelection();
   window.currentAI = currentAI;
 
   function handleGetSuggestion() {
     const userPrompt = domElements.aiPromptInput.value.trim();
     if (!userPrompt || currentAI.isGenerating) return;
 
-    // Clear input
     domElements.aiPromptInput.value = "";
-
-    // Create user message
     currentAI.createChatMessage(userPrompt, "user");
 
-    // Get AI response
-    console.log(
-      "Sending user input to AI assistant:",
-      currentAI.constructor.name,
-      userPrompt
-    );
+    // Log which assistant was used (A or B) and which AI type it maps to
+    const selectedAssistant = domElements.aiModeSelect?.value;
+    const aiType = experimentConfig.getAITypeForAssistant(selectedAssistant);
+
+    console.log(`Using ${selectedAssistant} (${aiType}):`, userPrompt);
+
+    // Enhanced logging for experimental data
+    eventLogger.logEvent("ai_prompt", {
+      prompt: userPrompt,
+      assistant_label: selectedAssistant, // "assistant-a" or "assistant-b"
+      actual_ai_type: aiType, // "vibecoding" or "reflective"
+      condition: experimentConfig.getCurrentConditionInfo(),
+      historyLength: currentAI.conversationHistory.length,
+    });
+
     currentAI.getSuggestion(userPrompt);
   }
 
   function setupEventListeners() {
-    // AI suggestion button
     domElements.getAiSuggestionBtn?.addEventListener(
       "click",
       handleGetSuggestion
     );
 
-    // Enter key in AI input
     domElements.aiPromptInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") handleGetSuggestion();
     });
 
-    // AI mode selection change - FIX: Update currentAI properly
+    // AI mode selection change - now handles experimental conditions
     domElements.aiModeSelect?.addEventListener("change", (e) => {
-      const newMode = e.target.value;
-      currentAI = newMode === "vibecoding" ? vibecodingAI : reflectiveAI;
-      window.currentAI = currentAI; // Update the global reference
+      const selectedAssistant = e.target.value;
+      const aiType = experimentConfig.getAITypeForAssistant(selectedAssistant);
 
-      console.log(
-        `AI mode changed to: ${newMode} (${currentAI.constructor.name})`
-      );
-      eventLogger.logEvent("ai_mode_changed", { newMode: newMode });
+      currentAI = aiType === "vibecoding" ? vibecodingAI : reflectiveAI;
+      window.currentAI = currentAI;
+
+      console.log(`AI switched to ${selectedAssistant} (${aiType})`);
+
+      // Enhanced logging for experimental data
+      eventLogger.logEvent("ai_mode_changed", {
+        assistant_label: selectedAssistant,
+        actual_ai_type: aiType,
+        condition: experimentConfig.getCurrentConditionInfo(),
+      });
     });
   }
+
+  // Log initial experimental setup
+  eventLogger.logEvent("experiment_initialized", {
+    condition: experimentConfig.getCurrentConditionInfo(),
+    initial_assistant: domElements.aiModeSelect?.value || "assistant-a",
+    initial_ai_type: experimentConfig.getAITypeForAssistant(
+      domElements.aiModeSelect?.value || "assistant-a"
+    ),
+  });
 
   console.log("AI assistants initialized");
   console.log(
