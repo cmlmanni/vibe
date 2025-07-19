@@ -1,7 +1,7 @@
 {
   "name": "vibe-app",
   "version": "1.0.0",
-  "description": "AI Coding Experiment Web Application",
+  "description": "Playful Introduction to Python (with AI)",
   "main": "vibe-backend/server.js",
   "scripts": {
     "start": "node vibe-backend/server.js",
