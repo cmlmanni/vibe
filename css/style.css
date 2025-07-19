@@ -36,12 +36,74 @@ body {
 .cm-s-dracula .CodeMirror-linenumber {
   color: #6c757d;
 }
+/* Fix editor pane to properly contain CodeMirror */
+#editor-pane {
+  flex: 1 1 50%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Ensure editor container takes available space */
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Important for flex child */
+}
+
+/* Fix CodeMirror to fill its container completely */
+.editor-container .CodeMirror {
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+/* Ensure CodeMirror scroll containers work properly */
+.CodeMirror-scroll {
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+/* Fix the wrapper */
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler {
+  background-color: var(--editor-bg) !important;
+}
+
+/* Fix output pane sizing */
+#output-pane {
+  flex: 1 1 50%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Fix canvas container to not be too large initially */
+.canvas-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 200px; /* Set reasonable minimum */
+  max-height: 400px; /* Limit initial height */
+}
+
 #turtle-container {
   position: relative;
   width: 100%;
   height: 100%;
+  min-height: 200px;
+  max-height: 100%;
   background-color: white;
   border: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
 /* Ensure canvas container has proper positioning */
@@ -175,47 +237,71 @@ body {
 
 /* Fix editor pane to fill available space */
 #editor-pane {
-  flex: 1 1 auto; /* This makes it grow to fill available space */
+  flex: 1 1 50%;
   min-height: 200px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Make CodeMirror fill the editor pane completely */
-#editor-pane .CodeMirror {
-  flex: 1 1 auto !important; /* Force it to grow */
-  height: auto !important; /* Override CodeMirror's fixed height */
-  min-height: 0; /* Allow it to shrink if needed */
+/* Ensure editor container takes available space */
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Important for flex child */
 }
 
-/* Fix the CodeMirror wrapper */
-.CodeMirror-wrap {
-  height: 100% !important;
+/* Fix CodeMirror to fill its container completely */
+.editor-container .CodeMirror {
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
-/* Ensure proper scrolling */
+/* Ensure CodeMirror scroll containers work properly */
 .CodeMirror-scroll {
   overflow-y: auto !important;
   overflow-x: auto !important;
   height: 100% !important;
-  min-height: 0 !important;
+  max-height: none !important;
 }
 
-/* Fix output pane */
+/* Fix the wrapper */
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler {
+  background-color: var(--editor-bg) !important;
+}
+
+/* Fix output pane sizing */
 #output-pane {
-  flex: 1 1 auto;
+  flex: 1 1 50%;
   min-height: 200px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Ensure the canvas container fills output pane */
+/* Fix canvas container to not be too large initially */
 .canvas-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-height: 200px; /* Set reasonable minimum */
+  max-height: 400px; /* Limit initial height */
+}
+
+#turtle-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  max-height: 100%;
+  background-color: white;
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
