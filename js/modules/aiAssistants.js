@@ -5,32 +5,150 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
   class AIAssistant {
     constructor() {
       this.isGenerating = false;
+      this.conversationHistory = []; // Store conversation history
+      this.maxHistoryLength = 20; // Limit history to prevent token overflow
     }
 
-    // Enhanced formatting function
-    formatMessageContent(content) {
-      let formatted = content
-        // Bold text
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        // Italic text
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        // Inline code
-        .replace(
-          /`(.*?)`/g,
-          '<code class="bg-gray-700 px-1 rounded text-xs font-mono">$1</code>'
-        )
-        // Numbered lists (1. 2. 3. etc.)
-        .replace(
-          /^(\d+\.\s+)/gm,
-          '<span class="font-semibold text-blue-400">$1</span>'
-        )
-        // Convert line breaks to HTML
-        .replace(/\n/g, "<br>");
+    // Add message to conversation history
+    addToHistory(role, content) {
+      this.conversationHistory.push({
+        role: role,
+        content: content,
+        timestamp: new Date().toISOString(),
+      });
 
-      return formatted;
+      // Keep only recent messages to manage token limits
+      if (this.conversationHistory.length > this.maxHistoryLength) {
+        // Keep system message (first) and remove oldest user/assistant messages
+        const systemMessages = this.conversationHistory.filter(
+          (msg) => msg.role === "system"
+        );
+        const otherMessages = this.conversationHistory.filter(
+          (msg) => msg.role !== "system"
+        );
+        const recentMessages = otherMessages.slice(
+          -this.maxHistoryLength + systemMessages.length
+        );
+        this.conversationHistory = [...systemMessages, ...recentMessages];
+      }
+
+      console.log(`Added to history: ${role} - ${content.substring(0, 50)}...`);
     }
 
-    // Create chat messages with code suggestion capability
+    // Get conversation history for API call
+    getConversationForAPI() {
+      return this.conversationHistory.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+    }
+
+    // Clear conversation history
+    clearHistory() {
+      const systemMessage = this.conversationHistory.find(
+        (msg) => msg.role === "system"
+      );
+      this.conversationHistory = systemMessage ? [systemMessage] : [];
+      console.log("Conversation history cleared");
+      eventLogger.logEvent("conversation_cleared", {
+        assistant: this.constructor.name,
+      });
+    }
+
+    // ONLY ONE fetchFromAI method with conversation history
+    async fetchFromAI(userPrompt, includeCodeContext = true) {
+      try {
+        this.isGenerating = true;
+
+        // Show thinking message
+        this.createChatMessage("Thinking...", "system");
+
+        // Add current user message to history
+        let contextualPrompt = userPrompt;
+
+        // Include current code context if requested
+        if (includeCodeContext && window.editor) {
+          const currentCode = window.editor.getValue();
+          if (currentCode.trim() !== "import turtle\n\n# Your code here") {
+            contextualPrompt = `Current code in editor:\n\`\`\`python\n${currentCode}\n\`\`\`\n\nUser question: ${userPrompt}`;
+          }
+        }
+
+        this.addToHistory("user", contextualPrompt);
+
+        console.log("Sending conversation history to AI:", {
+          historyLength: this.conversationHistory.length,
+          systemPrompt: this.systemPrompt?.substring(0, 50) + "...",
+          userPrompt: userPrompt.substring(0, 100) + "...",
+        });
+
+        // Call Azure OpenAI with full conversation history
+        const response = await getAIResponse(
+          this.getConversationForAPI(), // Send full conversation as first parameter
+          this.systemPrompt // System prompt as second parameter
+        );
+
+        // Remove thinking message
+        const chatContainer = domElements.chatContainer;
+        if (chatContainer && chatContainer.lastChild) {
+          chatContainer.removeChild(chatContainer.lastChild);
+        }
+
+        this.isGenerating = false;
+
+        if (!response || typeof response !== "string") {
+          console.error("Invalid response from AI:", response);
+          return {
+            type: "text",
+            content: "Sorry, I received an invalid response. Please try again.",
+          };
+        }
+
+        // Add AI response to history
+        this.addToHistory("assistant", response);
+
+        // Extract code blocks
+        const codeMatch = response.match(/```(?:python)?\s*([\s\S]+?)\s*```/);
+
+        if (codeMatch) {
+          const codeContent = codeMatch[1].trim();
+          let textContent = response
+            .replace(/```(?:python)?\s*[\s\S]+?\s*```/, "")
+            .trim();
+
+          if (!textContent) {
+            textContent = "Here's a code suggestion:";
+          }
+
+          console.log("Extracted code:", codeContent.substring(0, 50) + "...");
+          console.log("Extracted text:", textContent.substring(0, 50) + "...");
+
+          return {
+            type: "code",
+            content: textContent,
+            code: codeContent,
+          };
+        }
+
+        return { type: "text", content: response };
+      } catch (error) {
+        console.error("Error fetching AI response:", error);
+
+        // Remove thinking message
+        const chatContainer = domElements.chatContainer;
+        if (chatContainer && chatContainer.lastChild) {
+          chatContainer.removeChild(chatContainer.lastChild);
+        }
+
+        this.isGenerating = false;
+        return {
+          type: "text",
+          content: `Error: ${error.message || "Failed to get AI response"}`,
+        };
+      }
+    }
+
+    // Create chat messages method (keep as is)
     createChatMessage(content, sender, codeBlock = null) {
       const chatContainer = domElements.chatContainer;
 
@@ -43,7 +161,13 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
         "rounded"
       );
 
-      // Add the message header (who's speaking)
+      // Add timestamp for better conversation tracking
+      const timestamp = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      // Add the message header
       const headerDiv = document.createElement("div");
       headerDiv.classList.add(
         "mb-1",
@@ -58,8 +182,10 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
       senderDiv.classList.add("flex", "items-center");
 
       if (sender === "ai") {
-        senderDiv.innerHTML =
-          '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>AI Assistant';
+        senderDiv.innerHTML = `
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>AI Assistant`;
 
         // Add action buttons for AI messages
         const actionsDiv = document.createElement("div");
@@ -67,8 +193,7 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
 
         // Copy button
         const copyBtn = document.createElement("button");
-        copyBtn.innerHTML =
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
+        copyBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
         copyBtn.title = "Copy to clipboard";
         copyBtn.classList.add(
           "text-gray-400",
@@ -79,48 +204,48 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
         copyBtn.addEventListener("click", () => {
           const textToCopy = codeBlock || content;
           navigator.clipboard.writeText(textToCopy);
-          // Show feedback
           copyBtn.classList.add("text-green-500");
           setTimeout(() => copyBtn.classList.remove("text-green-500"), 1000);
         });
 
-        // Regenerate button for AI
-        const regenerateBtn = document.createElement("button");
-        regenerateBtn.innerHTML =
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
-        regenerateBtn.title = "Regenerate response";
-        regenerateBtn.classList.add(
+        // Clear conversation button
+        const clearBtn = document.createElement("button");
+        clearBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+        clearBtn.title = "Clear conversation";
+        clearBtn.classList.add(
           "text-gray-400",
-          "hover:text-white",
+          "hover:text-red-400",
           "p-1",
           "rounded"
         );
-        regenerateBtn.addEventListener("click", () => {
-          // Need to access the last user message
-          const userMessages = document.querySelectorAll(".user-message");
-          if (userMessages.length > 0) {
-            const lastUserMessage = userMessages[userMessages.length - 1];
-            const userPrompt = lastUserMessage.querySelector("p").textContent;
-
-            // Remove this AI message
-            chatContainer.removeChild(messageDiv);
-
-            // Get a new response
-            if (window.currentAI && !window.currentAI.isGenerating) {
-              window.currentAI.getSuggestion(userPrompt);
-            }
+        clearBtn.addEventListener("click", () => {
+          if (
+            confirm(
+              "Clear conversation history? This will start a fresh conversation."
+            )
+          ) {
+            this.clearHistory();
+            chatContainer.innerHTML = ""; // Clear visual chat
+            chatContainer.innerHTML =
+              '<div class="text-center text-gray-500 text-xs py-4">Conversation cleared. Start a new conversation!</div>';
           }
         });
 
         actionsDiv.appendChild(copyBtn);
-        actionsDiv.appendChild(regenerateBtn);
+        actionsDiv.appendChild(clearBtn);
         headerDiv.appendChild(senderDiv);
         headerDiv.appendChild(actionsDiv);
       } else if (sender === "user") {
-        senderDiv.innerHTML =
-          '<div class="flex items-center"><svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span>You</span></div>';
+        senderDiv.innerHTML = `
+          <div class="flex items-center">
+            <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span>You</span>
+            <span class="ml-2 text-gray-500">${timestamp}</span>
+          </div>`;
       } else {
-        headerDiv.textContent = "System";
+        senderDiv.textContent = "System";
       }
 
       if (sender !== "ai") {
@@ -129,15 +254,23 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
 
       messageDiv.appendChild(headerDiv);
 
-      // FIX: Replace the content paragraph section with proper formatting
+      // Add formatted content
       const contentDiv = document.createElement("div");
       contentDiv.classList.add("text-sm", "mb-2", "leading-relaxed");
 
-      // Use the enhanced formatting
-      contentDiv.innerHTML = this.formatMessageContent(content);
+      const formattedContent = content
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        .replace(
+          /`(.*?)`/g,
+          '<code class="bg-gray-700 px-1 rounded text-xs font-mono">$1</code>'
+        )
+        .replace(/\n/g, "<br>");
+
+      contentDiv.innerHTML = formattedContent;
       messageDiv.appendChild(contentDiv);
 
-      // Add code block with "Apply" button if provided
+      // Add code block if provided
       if (codeBlock && sender === "ai") {
         const codeContainer = document.createElement("div");
         codeContainer.classList.add(
@@ -149,7 +282,6 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
           "border-gray-700"
         );
 
-        // Create code header with language and action buttons
         const codeHeader = document.createElement("div");
         codeHeader.classList.add(
           "bg-gray-800",
@@ -181,20 +313,22 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
           "text-white"
         );
 
-        // Add click handler to apply code to editor
         applyButton.addEventListener("click", () => {
           if (window.editor) {
             window.editor.setValue(codeBlock);
             console.log("Applied code to editor");
-          } else {
-            console.error("Editor not found");
+            // Add to history that code was applied
+            this.addToHistory(
+              "system",
+              `User applied suggested code: ${codeBlock.substring(0, 100)}...`
+            );
           }
         });
 
-        // Modify button (insert at cursor)
-        const modifyButton = document.createElement("button");
-        modifyButton.textContent = "Insert at cursor";
-        modifyButton.classList.add(
+        // Insert at cursor button
+        const insertButton = document.createElement("button");
+        insertButton.textContent = "Insert at Cursor";
+        insertButton.classList.add(
           "px-2",
           "py-0.5",
           "bg-gray-600",
@@ -204,20 +338,26 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
           "text-white"
         );
 
-        modifyButton.addEventListener("click", () => {
+        insertButton.addEventListener("click", () => {
           if (window.editor) {
             const cursor = window.editor.getCursor();
             window.editor.replaceRange(codeBlock, cursor);
             console.log("Inserted code at cursor");
+            this.addToHistory(
+              "system",
+              `User inserted suggested code at cursor: ${codeBlock.substring(
+                0,
+                100
+              )}...`
+            );
           }
         });
 
         buttonGroup.appendChild(applyButton);
-        buttonGroup.appendChild(modifyButton);
+        buttonGroup.appendChild(insertButton);
         codeHeader.appendChild(buttonGroup);
         codeContainer.appendChild(codeHeader);
 
-        // Add code content with proper formatting
         const codeContent = document.createElement("pre");
         codeContent.classList.add("p-3", "bg-gray-900", "overflow-x-auto");
 
@@ -227,173 +367,97 @@ export function initializeAIAssistants(domElements, eventLogger, editor) {
 
         codeContent.appendChild(codeText);
         codeContainer.appendChild(codeContent);
-
         messageDiv.appendChild(codeContainer);
       }
 
-      // Add message to chat container
       chatContainer.appendChild(messageDiv);
-
-      // Scroll to the new message
       chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    async fetchFromAI(systemPrompt, userPrompt) {
-      try {
-        this.isGenerating = true;
-        this.createChatMessage("Thinking...", "system");
-
-        console.log("Sending to Azure OpenAI:", {
-          systemPrompt: systemPrompt.substring(0, 50) + "...",
-          userPrompt: userPrompt.substring(0, 50) + "...",
-        });
-
-        // Call Azure OpenAI via backend
-        const response = await getAIResponse(userPrompt, systemPrompt);
-        console.log("AI response received:", response?.substring(0, 100));
-
-        // Remove the "thinking" message
-        const chatContainer = domElements.chatContainer;
-        if (chatContainer && chatContainer.lastChild) {
-          chatContainer.removeChild(chatContainer.lastChild);
-        }
-
-        this.isGenerating = false;
-
-        // Check if response is valid
-        if (!response || typeof response !== "string") {
-          console.error("Invalid response from Azure OpenAI:", response);
-          return {
-            type: "text",
-            content: "Sorry, I received an invalid response. Please try again.",
-          };
-        }
-
-        // Extract code blocks with improved regex
-        const codeMatch = response.match(/```(?:python)?\s*([\s\S]+?)\s*```/);
-
-        if (codeMatch) {
-          // If found, return both text and extracted code
-          const codeContent = codeMatch[1].trim();
-
-          // Get text outside of code blocks
-          let textContent = response
-            .replace(/```(?:python)?\s*[\s\S]+?\s*```/, "")
-            .trim();
-
-          if (!textContent) {
-            textContent = "Here's a code suggestion:";
-          }
-
-          console.log("Extracted code:", codeContent.substring(0, 50) + "...");
-          console.log("Extracted text:", textContent.substring(0, 50) + "...");
-
-          return {
-            type: "code",
-            content: textContent,
-            code: codeContent,
-          };
-        }
-
-        // If no code blocks, return as text
-        return { type: "text", content: response };
-      } catch (error) {
-        console.error("Error fetching AI response:", error);
-
-        const chatContainer = domElements.chatContainer;
-        if (chatContainer && chatContainer.lastChild) {
-          chatContainer.removeChild(chatContainer.lastChild);
-        }
-
-        this.isGenerating = false;
-        return {
-          type: "text",
-          content: `Error: ${error.message || "Failed to get AI response"}`,
-        };
-      }
     }
   }
 
   class VibecodingAssistant extends AIAssistant {
     constructor() {
       super();
-      this.systemPrompt =
-        "You are a friendly Python programming assistant specializing in turtle graphics. You can help with coding questions, have casual conversations, and provide guidance on Python turtle library.\n\nWhen users ask coding-related questions, provide helpful Python turtle code solutions. When users make casual remarks like greetings or general comments, respond naturally and conversationally. Only provide code when the user is clearly asking for programming help.\n\nBe helpful, friendly, and adaptive to the user's intent.";
+      this.systemPrompt = `You are a friendly Python programming assistant specializing in turtle graphics. You maintain context from our previous conversation to provide better help.
+
+Key capabilities:
+- Remember what we've discussed before
+- Provide Python turtle graphics solutions
+- Have casual conversations
+- Build upon previous suggestions and code
+- Reference earlier parts of our conversation when relevant
+
+Be helpful, friendly, and contextually aware of our ongoing conversation.`;
+
+      // Add system message to conversation history
+      this.addToHistory("system", this.systemPrompt);
     }
 
     async getSuggestion(userPrompt) {
       console.log("🚀 VibecodingAssistant processing:", userPrompt);
       if (this.isGenerating) return;
+
       eventLogger.logEvent("ai_prompt", {
         prompt: userPrompt,
         mode: "vibecoding",
+        historyLength: this.conversationHistory.length,
       });
-      const response = await this.fetchFromAI(this.systemPrompt, userPrompt);
-      eventLogger.logEvent("ai_response", { response });
 
-      // First create the main message
+      // Call the conversation history version of fetchFromAI
+      const response = await this.fetchFromAI(userPrompt);
+
+      eventLogger.logEvent("ai_response", {
+        response,
+        historyLength: this.conversationHistory.length,
+      });
+
       if (response.type === "code") {
         this.createChatMessage(response.content, "ai", response.code);
       } else if (response.type === "text") {
         this.createChatMessage(response.content, "ai");
       }
-
-      // Then add suggested follow-up actions (Copilot-like behavior)
-      this.addSuggestedActions(userPrompt);
-    }
-
-    addSuggestedActions(userPrompt) {
-      const chatContainer = domElements.chatContainer;
-      const lastMessage = chatContainer.lastElementChild;
-
-      if (!lastMessage) return;
-
-      const suggestedActions = document.createElement("div");
-      suggestedActions.classList.add("ai-options-container", "mt-2");
-
-      // Create suggested follow-up questions based on the current task
-      // Note: We'll need to pass currentTaskIndex from the tutorial module
-      let suggestions = [];
-      suggestions = ["Explain this code", "Optimize this code", "Add comments"];
-
-      // Add buttons for each suggestion
-      suggestions.forEach((suggestion) => {
-        const button = document.createElement("button");
-        button.textContent = suggestion;
-        button.classList.add("ai-option-button");
-        button.addEventListener("click", () => {
-          // Add the clicked suggestion as a user message
-          this.createChatMessage(suggestion, "user");
-          // Get AI response for this suggestion
-          this.getSuggestion(suggestion);
-        });
-        suggestedActions.appendChild(button);
-      });
-
-      lastMessage.appendChild(suggestedActions);
     }
   }
 
   class ReflectiveAssistant extends AIAssistant {
     constructor() {
       super();
-      this.systemPrompt =
-        "You are a friendly Socratic tutor and conversational assistant. You can engage in casual conversation and help users learn Python turtle graphics through guided questions.\n\nWhen users ask programming questions, guide them by asking thoughtful questions to help them discover the solution themselves. When users make casual remarks, greetings, or general comments, respond naturally and conversationally.\n\nYou should NOT write code for them, but instead help them think through problems. Be warm, encouraging, and adaptive to whether they want to chat or learn programming.";
+      this.systemPrompt = `You are a friendly Socratic tutor specializing in Python turtle graphics. You maintain conversation context to guide learning effectively.
+
+Key capabilities:
+- Remember our previous discussions and learning progress
+- Guide through thoughtful questions rather than giving direct answers
+- Reference what we've covered before
+- Build upon previous learning moments
+- Encourage discovery and understanding
+
+You should NOT write code for users, but guide them to discover solutions themselves while maintaining awareness of our conversation history.`;
+
+      // Add system message to conversation history
+      this.addToHistory("system", this.systemPrompt);
     }
 
     async getSuggestion(userPrompt) {
       console.log("🤔 ReflectiveAssistant processing:", userPrompt);
       if (this.isGenerating) return;
+
       eventLogger.logEvent("ai_prompt", {
         prompt: userPrompt,
         mode: "reflective",
+        historyLength: this.conversationHistory.length,
       });
-      const response = await this.fetchFromAI(this.systemPrompt, userPrompt);
-      eventLogger.logEvent("ai_response", { response });
+
+      // Call the conversation history version of fetchFromAI
+      const response = await this.fetchFromAI(userPrompt);
+
+      eventLogger.logEvent("ai_response", {
+        response,
+        historyLength: this.conversationHistory.length,
+      });
+
       if (response.type === "text") {
         this.createChatMessage(response.content, "ai");
       } else if (response.type === "code") {
-        // Add this line to handle code responses that might come from Azure
         this.createChatMessage(response.content, "ai", response.code);
       }
     }

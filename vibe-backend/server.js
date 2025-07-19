@@ -119,64 +119,112 @@ app.get("/api/config", (req, res) => {
   });
 });
 
-// OpenAI proxy endpoint
+// OpenAI proxy endpoint with conversation history support
 app.post("/api/openai", async (req, res) => {
-  console.log(
-    "Received request to /api/openai:",
-    JSON.stringify({
-      systemPrompt: req.body.systemPrompt?.substring(0, 50) + "...",
-      userPrompt: req.body.userPrompt?.substring(0, 50) + "...",
-      maxTokens: req.body.maxTokens,
-      temperature: req.body.temperature,
-    })
-  );
-
-  const {
-    systemPrompt,
-    userPrompt,
-    maxTokens = 512,
-    temperature = 0.7,
-  } = req.body;
-
-  // Validate required parameters
-  if (!userPrompt) {
-    console.error("Missing required parameter: userPrompt");
-    return res
-      .status(400)
-      .json({ error: "Missing required parameter: userPrompt" });
-  }
-
   try {
-    // Get credentials from environment variables
+    const {
+      conversationHistory,
+      systemPrompt,
+      userPrompt, // Keep for backward compatibility
+      maxTokens = 800,
+      temperature = 0.7,
+    } = req.body;
+
+    console.log("Received request with:", {
+      hasConversationHistory: !!(
+        conversationHistory && Array.isArray(conversationHistory)
+      ),
+      conversationHistoryLength: conversationHistory?.length || 0,
+      hasSystemPrompt: !!systemPrompt,
+      hasUserPrompt: !!userPrompt,
+      userPromptPreview: userPrompt
+        ? userPrompt.substring(0, 50) + "..."
+        : "undefined",
+    });
+
+    let messages = [];
+
+    if (conversationHistory && Array.isArray(conversationHistory)) {
+      // Use conversation history if provided
+      console.log(
+        `Using conversation history with ${conversationHistory.length} messages`
+      );
+      messages = [...conversationHistory]; // Create a copy
+
+      // Ensure system prompt is at the beginning if provided
+      if (systemPrompt) {
+        const hasSystemMessage = messages.find((msg) => msg.role === "system");
+        if (!hasSystemMessage) {
+          messages.unshift({ role: "system", content: systemPrompt });
+        }
+      }
+    } else if (userPrompt) {
+      // Fallback to single message format
+      console.log("Using single message format (legacy)");
+      messages = [
+        {
+          role: "system",
+          content: systemPrompt || "You are a helpful assistant.",
+        },
+        { role: "user", content: userPrompt },
+      ];
+    } else {
+      console.error("Missing required parameters:", {
+        conversationHistory: !!conversationHistory,
+        userPrompt: !!userPrompt,
+        requestBody: req.body,
+      });
+      return res.status(400).json({
+        error:
+          "Either conversationHistory (array) or userPrompt (string) is required",
+        received: {
+          conversationHistory: typeof conversationHistory,
+          userPrompt: typeof userPrompt,
+        },
+      });
+    }
+
+    // Log conversation structure (safely)
+    console.log("Conversation structure:");
+    if (messages.length > 0) {
+      console.log(
+        "- First message:",
+        messages[0]?.role,
+        messages[0]?.content
+          ? messages[0].content.substring(0, 50) + "..."
+          : "No content"
+      );
+      if (messages.length > 1) {
+        const lastMessage = messages[messages.length - 1];
+        console.log(
+          "- Last message:",
+          lastMessage?.role,
+          lastMessage?.content
+            ? lastMessage.content.substring(0, 50) + "..."
+            : "No content"
+        );
+      }
+    }
+    console.log(`- Total messages: ${messages.length}`);
+
     const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
     const apiKey = process.env.AZURE_OPENAI_API_KEY;
     const deploymentId = process.env.AZURE_DEPLOYMENT_NAME;
 
     if (!endpoint || !apiKey || !deploymentId) {
-      console.error("Missing Azure OpenAI configuration");
+      console.error("Missing Azure OpenAI configuration:", {
+        hasEndpoint: !!endpoint,
+        hasApiKey: !!apiKey,
+        hasDeploymentId: !!deploymentId,
+      });
       return res.status(500).json({
         error: "Server configuration error",
         details: "Azure OpenAI credentials not configured",
       });
     }
 
-    // Log the request being sent to Azure (without API key)
-    console.log(
-      `Calling Azure OpenAI API at: ${endpoint}/openai/deployments/${deploymentId}/chat/completions`
-    );
-    console.log("Request payload:", {
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt || "You are a helpful assistant.",
-        },
-        { role: "user", content: userPrompt },
-      ],
-      max_tokens: maxTokens,
-      temperature: temperature,
-    });
+    console.log(`Calling Azure OpenAI API with ${messages.length} messages...`);
 
-    // Call Azure OpenAI API
     const response = await fetch(
       `${endpoint}/openai/deployments/${deploymentId}/chat/completions?api-version=2025-01-01-preview`,
       {
@@ -186,20 +234,13 @@ app.post("/api/openai", async (req, res) => {
           "api-key": apiKey,
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content: systemPrompt || "You are a helpful assistant.",
-            },
-            { role: "user", content: userPrompt },
-          ],
+          messages: messages,
           max_tokens: maxTokens,
           temperature: temperature,
         }),
       }
     );
 
-    // Handle error responses from Azure OpenAI
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Azure OpenAI API error: ${response.status}`, errorText);
@@ -210,44 +251,11 @@ app.post("/api/openai", async (req, res) => {
     }
 
     const data = await response.json();
-    console.log("Azure OpenAI response received:");
-    console.log("- Status:", response.status);
-    console.log(
-      "- Content length:",
-      data.choices?.[0]?.message?.content?.length || 0
-    );
-    console.log("- Usage:", JSON.stringify(data.usage));
-
-    // Examine the response structure
-    console.log(
-      "- Response structure:",
-      JSON.stringify({
-        choices: data.choices?.map((c) => ({
-          message: {
-            role: c.message?.role,
-            contentPreview: c.message?.content?.substring(0, 50) + "...",
-          },
-        })),
-      })
-    );
-
-    // Verify content structure
     const content =
       data.choices?.[0]?.message?.content || "No response generated.";
 
-    // Log the full content to help debug the response format
     console.log(
-      "Response content preview (first 100 chars):",
-      content.substring(0, 100).replace(/\n/g, "\\n")
-    );
-
-    // Add a log to show if code blocks were detected
-    const hasCodeBlock = content.includes("```");
-    console.log("Contains code blocks:", hasCodeBlock);
-
-    // Return the AI response with detailed logging
-    console.log(
-      `Sending response to client with content length: ${content.length}`
+      `Response generated successfully, length: ${content.length} characters`
     );
 
     res.json({
@@ -255,11 +263,10 @@ app.post("/api/openai", async (req, res) => {
       usage: data.usage,
     });
   } catch (error) {
-    console.error(`Server error: ${error.message}`, error);
+    console.error(`Server error: ${error.message}`, error.stack);
     res.status(500).json({
       error: "Failed to communicate with Azure OpenAI",
       details: error.message,
-      stack: process.env.NODE_ENV === "production" ? undefined : error.stack,
     });
   }
 });

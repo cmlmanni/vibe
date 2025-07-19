@@ -82,70 +82,89 @@ function getBackendURL() {
 
 /**
  * Sends a request to Azure OpenAI via Express backend
- * @param {string} prompt - User's prompt
+ * @param {Array} conversationHistory - Array of message objects representing the conversation history
  * @param {string} systemPrompt - System instructions
- * @param {number} maxTokens - Maximum tokens in response
- * @param {number} temperature - Creativity level (0-1)
  * @returns {Promise<string>} AI response
  */
 export async function getAIResponse(
-  prompt,
-  systemPrompt = "",
-  maxTokens = 512,
+  conversationHistory,
+  systemPrompt = null,
+  maxTokens = 800,
   temperature = 0.7
 ) {
   try {
-    // Get backend URL dynamically each time to ensure config is available
-    const backendURL = getBackendURL();
-    
-    // Check if backend URL is properly configured
-    if (!backendURL || backendURL === "GITHUB_PAGES_CONFIG_MISSING") {
-      throw new Error(
-        "Backend URL not configured. Please check your deployment configuration."
-      );
+    const backendUrl = getBackendURL();
+
+    if (backendUrl === "GITHUB_PAGES_CONFIG_MISSING") {
+      throw new Error("Backend configuration missing for GitHub Pages");
     }
 
-    console.log("Calling Azure OpenAI with:", {
-      promptPreview:
-        prompt.substring(0, 50) + (prompt.length > 50 ? "..." : ""),
-      systemPromptPreview:
-        systemPrompt.substring(0, 50) + (systemPrompt.length > 50 ? "..." : ""),
-      backendURL: backendURL,
-    });
+    console.log("Calling backend at:", backendUrl);
+    console.log(
+      "Conversation history length:",
+      Array.isArray(conversationHistory)
+        ? conversationHistory.length
+        : "Not an array"
+    );
 
-    // Enhanced prompt for better code formatting
-    const enhancedPrompt =
-      prompt +
-      "\n\nPlease make sure any code is properly formatted between ```python and ``` markers.";
+    let requestBody;
 
-    // Show a detailed log of what we're sending
-    console.log(`POST ${backendURL}`);
-
-    const response = await fetch(backendURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userPrompt: enhancedPrompt,
+    // Handle both old format (string) and new format (array)
+    if (Array.isArray(conversationHistory)) {
+      // New format: conversation history
+      requestBody = {
+        conversationHistory: conversationHistory,
         systemPrompt: systemPrompt,
         maxTokens: maxTokens,
         temperature: temperature,
-      }),
+      };
+    } else {
+      // Old format: single user prompt (for backward compatibility)
+      requestBody = {
+        userPrompt: conversationHistory, // First parameter is userPrompt in old format
+        systemPrompt: systemPrompt,
+        maxTokens: maxTokens,
+        temperature: temperature,
+      };
+    }
+
+    console.log("Request body:", {
+      ...requestBody,
+      conversationHistory:
+        requestBody.conversationHistory &&
+        `[${requestBody.conversationHistory.length} messages]`,
+      systemPrompt:
+        requestBody.systemPrompt?.substring(0, 50) + "..." || undefined,
+    });
+
+    const response = await fetch(backendUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error (${response.status}): ${errorText}`);
+      const errorData = await response.json().catch(() => ({
+        error: "Unknown error",
+      }));
+      throw new Error(
+        `Backend error: ${response.status} - ${
+          errorData.error || "Unknown error"
+        }`
+      );
     }
 
     const data = await response.json();
-    console.log("Received response:", {
-      contentPreview: data.content.substring(0, 100) + "...",
-      length: data.content.length,
-    });
+    console.log(
+      "Backend response received, content length:",
+      data.content?.length || 0
+    );
 
     return data.content;
   } catch (error) {
     console.error("Error calling Azure OpenAI:", error);
-    return `Error: ${error.message}`;
+    throw error;
   }
 }
