@@ -1,0 +1,40 @@
+:root {
+  /* Color Palette */
+  --vscode-bg: #1e1e1e;
+  --sidebar-bg: #252526;
+  --activity-bar-bg: #333333;
+  --editor-bg: #1e1e1e;
+  --panel-bg: #1e1e1e;
+  --border-color: #3c3c3c;
+  --blue-accent: #0078d4;
+  --text-color: #e0e0e0;
+  
+  /* Chat Colors */
+  --user-message-bg: #2d333b;
+  --ai-message-bg: #1e2228;
+  --system-message-bg: #32363e;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  
+  /* Sizing */
+  --min-panel-height: 200px;
+  --min-sidebar-width: 200px;
+  --max-sidebar-width: 50vw;
+  --resize-handle-size: 6px;
+  
+  /* Typography */
+  --font-family-base: "Inter", sans-serif;
+  --font-family-mono: "Fira Code", monospace;
+  --font-size-base: 14px;
+  --font-size-sm: 0.75rem;
+  --font-size-xs: 0.85em;
+  
+  /* Transitions */
+  --transition-fast: 0.2s;
+  --transition-medium: 0.3s;
+}
