@@ -4,7 +4,7 @@ import { setupCodeMirror } from "./modules/codeMirrorSetup.js";
 import { initializeEventLogging } from "./modules/eventLogging.js";
 import { initializeTutorial } from "./modules/tutorialLogic.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";
-import { initializeAIAssistants } from "./modules/aiAssistants.js";
+import { initializeAIAssistants } from "./modules/ai/index.js"; // Updated import path
 import { setupResizablePanels } from "./modules/resizablePanels.js";
 import { initializeContainerManagement } from "./modules/containerManagement.js";
 
