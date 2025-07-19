@@ -73,6 +73,10 @@ jobs:
               🚀 Running on GitHub Pages - Backend powered by Azure\
             </div>|' gh-pages-build/index.html
 
+      - name: Configure backend URL for GitHub Pages
+        run: |
+          echo "window.GITHUB_PAGES_CONFIG = { backendUrl: '${{ secrets.AZURE_BACKEND_URL }}' };" > github-pages-config.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
