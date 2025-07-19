@@ -32,8 +32,86 @@
     />
   </head>
   <body class="text-sm">
+    <!-- Experiment Introduction Modal -->
+    <div id="experiment-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            🐍 Welcome to Playful Introduction to Python (with AI) 🤖
+          </h2>
+        </div>
+
+        <div class="modal-body">
+          <div class="intro-section">
+            <h3>🔬 About This Study</h3>
+            <p>
+              You will be working with
+              <strong>two different AI programming assistants</strong>
+              (Assistant A 🅰️ and Assistant B 🅱️) to complete Python turtle
+              graphics tasks. We're studying how different AI interaction styles
+              affect learning and problem-solving.
+            </p>
+          </div>
+
+          <div class="instructions-section">
+            <h3>📋 What You'll Do</h3>
+            <ul>
+              <li>✅ Complete 2-4 simple Python programming tasks</li>
+              <li>
+                🔄 Use both AI assistants - you'll switch between them after
+                completing each task
+              </li>
+              <li>💬 Think aloud as you work (share your thoughts out loud)</li>
+              <li>📝 Answer brief surveys after each condition</li>
+            </ul>
+          </div>
+
+          <div class="important-notes">
+            <h3>⚠️ Important Notes</h3>
+            <div class="note-item">
+              <strong>🎯 We are testing the tools, not you.</strong> There are
+              no right or wrong approaches.
+            </div>
+            <div class="note-item">
+              <strong>🗣️ Think Aloud:</strong> Please verbalize your thoughts,
+              confusion, and decision-making process.
+            </div>
+            <div class="note-item">
+              <strong>📋 Task Structure:</strong> Complete each task fully with
+              one assistant, then switch to the other assistant for the next
+              task.
+            </div>
+            <div class="note-item">
+              <strong>🔀 Switching Instructions:</strong> The experimenter will
+              guide you on when and how to switch between assistants.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="footer-note">
+            <p>
+              <em>
+                ⏱️ This session will take approximately 60-90 minutes and will
+                be recorded for research purposes. 📹
+              </em>
+            </p>
+          </div>
+          <div class="footer-buttons">
+            <button id="start-experiment-btn" class="btn-primary">
+              🚀 I Understand - Start Experiment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Make sure your app container has this structure -->
-    <div id="app-container" class="h-screen w-screen flex">
+    <div
+      id="app-container"
+      class="h-screen w-screen flex"
+      style="display: none"
+    >
       <!-- Activity Bar -->
       <div
         class="activity-bar bg-[var(--activity-bar-bg)] p-2 flex flex-col items-center gap-4 flex-shrink-0"
@@ -183,34 +261,34 @@
           <div class="mb-2">
             <span
               class="block text-xs font-semibold mb-1 text-gray-300 uppercase tracking-wider"
-              >AI ASSISTANT</span
+              >🤖 AI ASSISTANT</span
             >
-            <!-- Even more compact corner version -->
-            <div class="sidebar-corner-controls">
-              <select
-                id="ai-mode-select"
-                class="ai-mode-select-compact"
-                title="Choose AI Assistant"
-              >
-                <option value="assistant-a">Assistant A</option>
-                <option value="assistant-b">Assistant B</option>
-              </select>
-            </div>
+            <select
+              id="ai-mode-select"
+              class="ai-mode-select-compact"
+              title="Choose AI Assistant"
+            >
+              <option value="vibecoding">Assistant A</option>
+              <option value="reflective">Assistant B</option>
+            </select>
           </div>
         </div>
+
+        <!-- Rest of chat interface -->
         <div
           id="chat-container"
           class="flex-grow overflow-y-auto space-y-4 pr-2"
         >
           <!-- Chat messages will be appended here -->
         </div>
+
         <div
           class="chat-input-area border-t border-[var(--border-color)] pt-2 mt-2"
         >
           <input
             id="ai-prompt-input"
             type="text"
-            placeholder="Ask for a suggestion..."
+            placeholder="💭 Ask for a suggestion..."
             class="w-full bg-[#3c3c3c] border border-transparent rounded p-2 text-xs placeholder-gray-500"
           />
           <div class="flex gap-2 mt-2">
@@ -218,7 +296,7 @@
               id="get-ai-suggestion-btn"
               class="w-full px-4 py-1 bg-[var(--blue-accent)] text-white font-semibold rounded text-xs hover:bg-opacity-80"
             >
-              Send
+              📤 Send
             </button>
           </div>
         </div>

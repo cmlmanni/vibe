@@ -4,6 +4,7 @@
 @import url("./base/typography.css");
 
 @import url("./layout/resizers.css");
+@import url("./layout/modal.css");
 
 @import url("./components/codemirror.css");
 @import url("./components/chat.css");
