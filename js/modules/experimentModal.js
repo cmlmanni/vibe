@@ -1,4 +1,6 @@
 /* filepath: /js/modules/experimentModal.js */
+import { ensureEditorReady } from "./codeMirrorSetup.js";
+
 export function initializeExperimentModal(experimentConfig, eventLogger) {
   function showExperimentModal() {
     const modal = document.getElementById("experiment-modal");
@@ -34,6 +36,17 @@ export function initializeExperimentModal(experimentConfig, eventLogger) {
     setTimeout(() => {
       modal.style.display = "none";
       appContainer.style.display = "flex";
+
+      // IMPORTANT: Refresh CodeMirror after showing the app
+      setTimeout(() => {
+        ensureEditorReady();
+      }, 200);
+
+      // Log experiment start
+      eventLogger.logEvent("experiment_started", {
+        condition: experimentConfig.getCurrentConditionInfo(),
+        timestamp: new Date().toISOString(),
+      });
 
       console.log("✅ Experiment session started");
     }, 300);

@@ -1,4 +1,6 @@
 /* filepath: /js/modules/tutorialLogic.js */
+import { ensureEditorReady } from "./codeMirrorSetup.js";
+
 export function initializeTutorial(domElements, eventLogger) {
   const tutorialTasks = [
     {
@@ -27,11 +29,10 @@ t.right(90)`,
           type: "demonstration",
         },
         {
-          instruction:
-            "Now practice by drawing a triangle on your own (NO AI assistance)",
+          instruction: "Now practice on your own: Draw a triangle. ",
           code: "# Try drawing a triangle using turtle commands\n# Hint: A triangle has 3 sides and turns 120 degrees",
-          hint: "A triangle has 3 sides. Each turn should be 120 degrees (360° ÷ 3).",
-          tip: "Use forward() and right() commands like in the square example.",
+          hint: "A triangle has 3 sides. Each turn should be `120` degrees (`360° ÷ 3`).",
+          tip: "Use `forward()` and `right()` commands like in the square example.",
           type: "solo_practice",
           expectedOutput: "Triangle shape",
           aiBlocked: true,
@@ -63,7 +64,7 @@ t.right(90)`,
       ],
     },
     {
-      title: "Task 1: Draw a House (Procedural Style)",
+      title: "Task 1: Draw a House",
       description:
         "Code your house design using basic turtle commands with AI assistance.",
       type: "procedural_programming",
@@ -185,7 +186,7 @@ t.clear()
       ],
     },
     {
-      title: "Task 3: Build a House Class (Advanced)",
+      title: "Task 3: Build a House Class",
       description:
         "Create a House class for maximum reusability and customization.",
       type: "object_oriented_programming",
@@ -310,15 +311,15 @@ house2.draw()`,
     if (taskHeader) {
       taskHeader.classList.add(`task-type-${task.type}`);
 
-      // Add paradigm indicator
-      if (task.paradigm) {
-        const paradigmBadge = `<span class="paradigm-badge paradigm-${
-          task.paradigm
-        }">${task.paradigm.toUpperCase()}</span>`;
-        document.querySelector(
-          ".task-title-text"
-        ).innerHTML = `${task.title} ${paradigmBadge}`;
-      }
+      // // Add paradigm indicator
+      // if (task.paradigm) {
+      //   const paradigmBadge = `<span class="paradigm-badge paradigm-${
+      //     task.paradigm
+      //   }">${task.paradigm.toUpperCase()}</span>`;
+      //   document.querySelector(
+      //     ".task-title-text"
+      //   ).innerHTML = `${task.title} ${paradigmBadge}`;
+      // }
     }
 
     // Update step info with type-specific styling
@@ -415,6 +416,11 @@ house2.draw()`,
       setTimeout(() => {
         window.editor.refresh();
       }, 100);
+
+      // After setting editor content, ensure it's ready
+      setTimeout(() => {
+        ensureEditorReady();
+      }, 50);
     }
   }
 
@@ -433,18 +439,19 @@ house2.draw()`,
     document.getElementById(
       "progress-fill"
     ).style.width = `${progressPercent}%`;
-    document.getElementById("progress-text").textContent = `${task.type
-      .replace("_", " ")
-      .toUpperCase()} - Step ${currentStepIndex + 1}`;
+    document.getElementById("progress-text").textContent = `${task.type.replace(
+      "_",
+      " "
+    )} - Step ${currentStepIndex + 1}`;
   }
 
   function updateTipsDisplay(step, task) {
     let tipsHTML = `
       <div class="tip-item mb-2">
-        <strong>Hint:</strong> ${step.hint}
+        <strong>Hint:</strong> ${formatTextWithCode(step.hint)}
       </div>
       <div class="tip-item mb-2">
-        <strong>Tip:</strong> ${step.tip}
+        <strong>Tip:</strong> ${formatTextWithCode(step.tip)}
       </div>
     `;
 
@@ -464,7 +471,9 @@ house2.draw()`,
           <div class="tip-item paradigm-tip">
             <strong>${task.paradigm
               .replace("_", "-")
-              .toUpperCase()} Approach:</strong> ${paradigmTips[task.paradigm]}
+              .toUpperCase()} Approach:</strong> ${formatTextWithCode(
+          paradigmTips[task.paradigm]
+        )}
           </div>
         `;
       }
@@ -476,7 +485,9 @@ house2.draw()`,
         <div class="tip-item requirements">
           <strong>Requirements:</strong>
           <ul class="text-xs mt-1">
-            ${step.requirements.map((req) => `<li>• ${req}</li>`).join("")}
+            ${step.requirements
+              .map((req) => `<li>• ${formatTextWithCode(req)}</li>`)
+              .join("")}
           </ul>
         </div>
       `;
@@ -491,18 +502,40 @@ house2.draw()`,
 
       tipsHTML += `
         <div class="tip-item ai-guidance">
-          <strong>AI Assistance:</strong> ${aiGuidance}
+          <strong>AI Assistance:</strong> ${formatTextWithCode(aiGuidance)}
         </div>
       `;
     } else {
       tipsHTML += `
         <div class="tip-item no-ai">
-          <strong>Independent Work:</strong> Try this on your own without AI assistance.
+          <strong>Independent Work:</strong> ${formatTextWithCode(
+            "Try this on your own without AI assistance."
+          )}
         </div>
       `;
     }
 
     document.getElementById("current-tips").innerHTML = tipsHTML;
+  }
+
+  // NEW: Helper function to format text with inline code blocks
+  function formatTextWithCode(text) {
+    // Replace text between backticks with styled code spans
+    return text.replace(/`([^`]+)`/g, (match, code) => {
+      // Simple Python keyword highlighting
+      const highlighted = code
+        .replace(
+          /\b(for|if|def|class|import|from|return|pass|in|range)\b/g,
+          '<span class="python-keyword">$1</span>'
+        )
+        .replace(
+          /\b(forward|right|left|backward|penup|pendown|goto|color|clear)\b/g,
+          '<span class="python-function">$1</span>'
+        )
+        .replace(/\b(\d+)\b/g, '<span class="python-number">$1</span>');
+
+      return `<code class="inline-code">${highlighted}</code>`;
+    });
   }
 
   function updateStepsOverview(task) {

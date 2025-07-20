@@ -1,6 +1,9 @@
 /* filepath: /js/script.js */
 import { initializeDOMElements } from "./modules/domElements.js";
-import { setupCodeMirror } from "./modules/codeMirrorSetup.js";
+import {
+  setupCodeMirror,
+  ensureEditorReady,
+} from "./modules/codeMirrorSetup.js"; // Import the new function
 import { initializeEventLogging } from "./modules/eventLogging.js";
 import { initializeTutorial } from "./modules/tutorialLogic.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";
@@ -61,6 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize tutorial
     tutorial.loadTaskAndStep(0, 0);
+
+    // Add a window resize listener to refresh editor
+    window.addEventListener("resize", () => {
+      setTimeout(ensureEditorReady, 100);
+    });
 
     console.log("✅ VIBE experimental application initialized successfully");
   } catch (error) {
