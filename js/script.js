@@ -3,7 +3,7 @@ import { initializeDOMElements } from "./modules/domElements.js";
 import {
   setupCodeMirror,
   ensureEditorReady,
-} from "./modules/codeMirrorSetup.js"; // Import the new function
+} from "./modules/codeMirrorSetup.js";
 import { initializeEventLogging } from "./modules/eventLogging.js";
 import { initializeTutorial } from "./modules/tutorial/index.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";

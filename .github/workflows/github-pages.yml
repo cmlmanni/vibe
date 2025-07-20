@@ -36,9 +36,9 @@ jobs:
 
       - name: Prepare GitHub Pages HTML
         run: |
-          # Get the GitHub Pages URL dynamically
-          GITHUB_PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY##*/}"
-          echo "GitHub Pages URL: $GITHUB_PAGES_URL"
+          # Debug: List all files
+          echo "📁 Repository contents:"
+          find . -type f -name "*.html" -o -name "*.css" -o -name "*.js" | head -20
 
           # Check if source files exist
           if [ ! -f "index.html" ]; then
@@ -51,19 +51,32 @@ jobs:
             exit 1
           fi
 
+          # Check CSS structure
+          echo "🎨 CSS files available:"
+          find css/ -name "*.css" | head -10
+
+          # Verify main.css exists
+          if [ ! -f "css/main.css" ]; then
+            echo "❌ css/main.css not found!"
+            echo "Available CSS files:"
+            ls -la css/
+            exit 1
+          fi
+
           # Extract body content from main index.html
-          echo "Extracting body content from index.html..."
+          echo "📄 Extracting body content from index.html..."
           sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
 
           # Verify extraction worked
           if [ ! -f temp_body.html ] || [ ! -s temp_body.html ]; then
             echo "❌ Failed to extract body content or file is empty"
-            echo "Checking for alternative body patterns..."
-            # Try alternative pattern
-            sed -n '/<body/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+            echo "Trying alternative body tag pattern..."
+            sed -n '/<body[^>]*>/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
             
             if [ ! -s temp_body.html ]; then
               echo "❌ Still no body content found"
+              echo "🔍 Debugging: First 20 lines of index.html:"
+              head -20 index.html
               exit 1
             fi
           fi
@@ -71,25 +84,34 @@ jobs:
           echo "✅ Body content extracted: $(wc -l < temp_body.html) lines"
 
           # Replace placeholder with the backend URL
-          echo "Processing GitHub Pages template..."
+          echo "🔧 Processing GitHub Pages template..."
           sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
 
+          # Verify replacement worked
+          if grep -q "BACKEND_URL_PLACEHOLDER" temp_index.html; then
+            echo "❌ Backend URL placeholder not replaced!"
+            exit 1
+          fi
+
           # Insert the body content into the GitHub Pages template
-          echo "Inserting body content into template..."
+          echo "📝 Inserting body content into template..."
           sed '/<\!-- Rest of your existing HTML content from index.html -->/r temp_body.html' temp_index.html > index.html
 
           # Clean up temporary files
-          echo "Cleaning up temporary files..."
+          echo "🧹 Cleaning up temporary files..."
           rm -f temp_body.html temp_index.html
 
           # Remove the placeholder comment
           sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
 
-          # Debug output
-          echo "CSS files check:"
-          ls -la css/ || echo "CSS directory not found"
+          # Final verification
+          echo "🔍 Final verification:"
+          echo "- Backend URL configured: $(grep -c 'window.BACKEND_URL' index.html || echo 0)"
+          echo "- CSS linked: $(grep -c 'css/main.css' index.html || echo 0)"
+          echo "- Script modules: $(grep -c 'type="module"' index.html || echo 0)"
 
-          echo "Generated index.html preview:"
+          # Show preview
+          echo "📋 Generated index.html preview (first 30 lines):"
           head -30 index.html
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
