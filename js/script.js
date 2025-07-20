@@ -22,6 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const eventLogger = initializeEventLogging();
     const experimentConfig = initializeExperimentConfig();
 
+    // Make experiment config globally available for API client
+    window.experimentConfig = experimentConfig;
+
     console.log("📋 Setting up experiment modal...");
 
     // Initialize experiment modal FIRST

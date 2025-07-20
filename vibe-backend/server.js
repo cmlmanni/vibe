@@ -16,14 +16,26 @@ const getCorsOptions = () => {
 
   return {
     origin: (origin, callback) => {
-      // Allow same-origin requests
-      if (!origin) return callback(null, true);
+      console.log("🔍 CORS check for origin:", origin);
+
+      // Allow same-origin requests (no origin header)
+      if (!origin) {
+        console.log("✅ Same-origin request allowed");
+        return callback(null, true);
+      }
 
       // Development - allow localhost
       if (
         isDevelopment &&
         origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)
       ) {
+        console.log("✅ Development localhost allowed");
+        return callback(null, true);
+      }
+
+      // Allow ANY GitHub Pages domain (replace with your specific domain for security)
+      if (origin.match(/^https:\/\/[\w-]+\.github\.io$/)) {
+        console.log("✅ GitHub Pages domain allowed");
         return callback(null, true);
       }
 
@@ -31,19 +43,14 @@ const getCorsOptions = () => {
       const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
         .split(",")
         .filter(Boolean);
+
       if (allowedOrigins.includes(origin)) {
+        console.log("✅ Explicitly allowed origin");
         return callback(null, true);
       }
 
-      // Development only - pattern matching
-      if (isDevelopment && origin.match(/^https:\/\/[\w-]+\.github\.io$/)) {
-        return callback(null, true);
-      }
-
-      // Log blocked attempts for security monitoring
-      console.warn(
-        `🚫 CORS blocked origin: ${origin} from IP: ${req?.ip || "unknown"}`
-      );
+      // Log blocked attempts
+      console.warn(`🚫 CORS blocked origin: ${origin}`);
       callback(new Error("Not allowed by CORS policy"));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

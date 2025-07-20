@@ -1,33 +1,57 @@
 /* filepath: /js/modules/experimentConfig.js */
 // Add GitHub Pages detection
 function getBackendUrl() {
-  // Check if running on GitHub Pages
+  // GitHub Pages detection
   if (window.location.hostname.includes("github.io")) {
-    return window.BACKEND_URL || "https://your-azure-app.azurewebsites.net";
+    const backendUrl = window.BACKEND_URL;
+
+    if (!backendUrl || backendUrl === "BACKEND_URL_PLACEHOLDER") {
+      console.error("❌ Backend URL not configured for GitHub Pages");
+      return null;
+    }
+
+    console.log("🌐 GitHub Pages - Using backend:", backendUrl);
+    return backendUrl;
   }
 
   // Local development
-  return "http://localhost:3000";
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    return "http://localhost:3000";
+  }
+
+  // Azure App Service (both frontend and backend on same domain)
+  return window.location.origin;
 }
 
 export function initializeExperimentConfig() {
   const backendUrl = getBackendUrl();
 
-  console.log(`🔧 Backend URL: ${backendUrl}`);
-  console.log(
-    `🌐 Environment: ${
-      window.location.hostname.includes("github.io") ? "GitHub Pages" : "Local"
-    }`
-  );
+  if (!backendUrl) {
+    console.error("❌ No backend URL available");
+    return null;
+  }
 
-  // Test backend connectivity
-  fetch(`${backendUrl}/health`)
-    .then((response) => response.json())
+  console.log(`🔧 Backend URL: ${backendUrl}`);
+
+  // Test backend connectivity with CORRECT endpoint
+  fetch(`${backendUrl}/api/health`) // Fixed: added /api prefix
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       console.log("✅ Backend connectivity test:", data);
     })
     .catch((error) => {
       console.error("❌ Backend connectivity failed:", error);
+      console.error(
+        "💡 Check if Azure backend is running and CORS is configured"
+      );
     });
 
   // Configuration for experimental conditions
@@ -98,5 +122,6 @@ export function initializeExperimentConfig() {
     getDefaultAssistant,
     getCurrentConditionInfo,
     getCounterbalanceCondition,
+    backendUrl, // Export the backend URL
   };
 }
