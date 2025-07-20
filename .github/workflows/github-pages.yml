@@ -40,23 +40,55 @@ jobs:
           GITHUB_PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY##*/}"
           echo "GitHub Pages URL: $GITHUB_PAGES_URL"
 
-          # Replace placeholder with the dynamic URL
+          # Check if source files exist
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html not found"
+            exit 1
+          fi
+
+          if [ ! -f "index-github-pages.html" ]; then
+            echo "❌ index-github-pages.html not found"
+            exit 1
+          fi
+
+          # Extract body content from main index.html
+          echo "Extracting body content from index.html..."
+          sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+
+          # Verify extraction worked
+          if [ ! -f temp_body.html ] || [ ! -s temp_body.html ]; then
+            echo "❌ Failed to extract body content or file is empty"
+            echo "Checking for alternative body patterns..."
+            # Try alternative pattern
+            sed -n '/<body/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+            
+            if [ ! -s temp_body.html ]; then
+              echo "❌ Still no body content found"
+              exit 1
+            fi
+          fi
+
+          echo "✅ Body content extracted: $(wc -l < temp_body.html) lines"
+
+          # Replace placeholder with the backend URL
+          echo "Processing GitHub Pages template..."
           sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
 
           # Insert the body content into the GitHub Pages template
+          echo "Inserting body content into template..."
           sed '/<\!-- Rest of your existing HTML content from index.html -->/r temp_body.html' temp_index.html > index.html
 
           # Clean up temporary files
-          rm temp_body.html temp_index.html
+          echo "Cleaning up temporary files..."
+          rm -f temp_body.html temp_index.html
 
           # Remove the placeholder comment
           sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
 
-          # Debug: Check if CSS files exist
+          # Debug output
           echo "CSS files check:"
           ls -la css/ || echo "CSS directory not found"
 
-          # Debug: Show first few lines of generated index.html
           echo "Generated index.html preview:"
           head -30 index.html
         env:
