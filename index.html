@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Coding Experiment Prototype</title>
+    <title>Playful Introduction to Python (with AI)</title>
 
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Link to your custom CSS file -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/main.css" />
 
     <!-- Fonts -->
     <link
@@ -32,8 +32,86 @@
     />
   </head>
   <body class="text-sm">
+    <!-- Experiment Introduction Modal -->
+    <div id="experiment-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            🐍 Welcome to Playful Introduction to Python (with AI) 🤖
+          </h2>
+        </div>
+
+        <div class="modal-body">
+          <div class="intro-section">
+            <h3>🔬 About This Study</h3>
+            <p>
+              You will be working with
+              <strong>two different AI programming assistants</strong>
+              (Assistant A 🅰️ and Assistant B 🅱️) to complete Python turtle
+              graphics tasks. We're studying how different AI interaction styles
+              affect learning and problem-solving.
+            </p>
+          </div>
+
+          <div class="instructions-section">
+            <h3>📋 What You'll Do</h3>
+            <ul>
+              <li>✅ Complete 2-4 simple Python programming tasks</li>
+              <li>
+                🔄 Use both AI assistants - you'll switch between them after
+                completing each task
+              </li>
+              <li>💬 Think aloud as you work (share your thoughts out loud)</li>
+              <li>📝 Answer brief surveys after each condition</li>
+            </ul>
+          </div>
+
+          <div class="important-notes">
+            <h3>⚠️ Important Notes</h3>
+            <div class="note-item">
+              <strong>🎯 We are testing the tools, not you.</strong> There are
+              no right or wrong approaches.
+            </div>
+            <div class="note-item">
+              <strong>🗣️ Think Aloud:</strong> Please verbalize your thoughts,
+              confusion, and decision-making process.
+            </div>
+            <div class="note-item">
+              <strong>📋 Task Structure:</strong> Complete each task fully with
+              one assistant, then switch to the other assistant for the next
+              task.
+            </div>
+            <div class="note-item">
+              <strong>🔀 Switching Instructions:</strong> The experimenter will
+              guide you on when and how to switch between assistants.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="footer-note">
+            <p>
+              <em>
+                ⏱️ This session will take approximately 60-90 minutes and will
+                be recorded for research purposes. 📹
+              </em>
+            </p>
+          </div>
+          <div class="footer-buttons">
+            <button id="start-experiment-btn" class="btn-primary">
+              🚀 I Understand - Start Experiment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Make sure your app container has this structure -->
-    <div id="app-container" class="h-screen w-screen flex">
+    <div
+      id="app-container"
+      class="h-screen w-screen flex"
+      style="display: none"
+    >
       <!-- Activity Bar -->
       <div
         class="activity-bar bg-[var(--activity-bar-bg)] p-2 flex flex-col items-center gap-4 flex-shrink-0"
@@ -66,67 +144,187 @@
         </svg>
       </div>
 
-      <!-- Left Sidebar (Tutorial) -->
+      <!-- Left Sidebar (Tutorial) - Compact Version -->
       <div
         id="left-sidebar"
-        class="sidebar bg-[var(--sidebar-bg)] w-64 p-4 flex flex-col flex-shrink-0"
+        class="left-sidebar bg-[var(--sidebar-bg)] w-80 p-4 flex flex-col flex-shrink-0 border-r border-[var(--border-color)]"
       >
-        <h2 class="font-bold text-xs uppercase tracking-wider mb-4">
-          Tutorial
-        </h2>
-        <div id="tutorial-content" class="flex-grow overflow-y-auto">
-          <h3 id="task-title" class="font-semibold text-white mb-2"></h3>
-          <div class="bg-gray-700 p-2 rounded mb-4">
-            <h4 class="font-semibold text-white text-xs mb-1">Current Step:</h4>
-            <p id="step-text" class="text-xs text-gray-300"></p>
+        <!-- Compact Header -->
+        <div class="tutorial-header mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="font-bold text-xs uppercase tracking-wider">Tutorial</h2>
+            <span id="progress-text" class="text-xs text-gray-400"
+              >Task 1 of 4</span
+            >
           </div>
-          <div class="flex gap-2 mb-4">
+          <div class="task-progress-bar bg-gray-700 rounded-full h-1.5">
+            <div
+              id="progress-fill"
+              class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+              style="width: 25%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Current Task - Compact -->
+        <div class="current-task bg-gray-800 p-3 rounded-lg mb-3">
+          <h3
+            id="task-title"
+            class="font-semibold text-white text-sm mb-2 flex items-center"
+          >
+            <span class="mr-2">📝</span>
+            <span class="task-title-text">Draw a Square</span>
+          </h3>
+          <p id="task-description" class="text-xs text-gray-300 line-clamp-2">
+            Learn the fundamentals of turtle graphics by creating your first
+            geometric shape.
+          </p>
+        </div>
+
+        <!-- Current Step - Focused -->
+        <div
+          class="current-step bg-blue-900 bg-opacity-40 border border-blue-500 p-3 rounded-lg mb-3"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-semibold text-blue-300 text-xs">Current Step</h4>
+            <span id="step-counter" class="text-xs text-blue-400">1 of 5</span>
+          </div>
+          <p id="step-text" class="text-sm text-gray-200 mb-3 leading-relaxed">
+            Import the turtle module to access graphics functions
+          </p>
+
+          <!-- Compact Code Hint (Collapsible) -->
+          <div
+            id="code-hint"
+            class="code-hint bg-gray-900 rounded border border-gray-600 mb-3"
+            style="display: none"
+          >
+            <button
+              id="toggle-code-hint"
+              class="w-full text-left p-2 text-xs font-mono text-green-400 hover:bg-gray-800 flex items-center justify-between"
+            >
+              <span>💻 Show Code Example</span>
+              <span id="code-hint-icon">▼</span>
+            </button>
+            <div id="code-hint-content" class="px-2 pb-2" style="display: none">
+              <pre
+                class="text-xs font-mono text-gray-300 overflow-x-auto"
+              ><code id="code-example">import turtle</code></pre>
+            </div>
+          </div>
+
+          <!-- Step Navigation -->
+          <div class="flex gap-2">
             <button
               id="prev-substep-btn"
-              class="flex-grow px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Prev Step
+              ← Prev
             </button>
             <button
               id="next-substep-btn"
-              class="flex-grow px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Next Step
+              Next →
             </button>
           </div>
         </div>
+
+        <!-- Quick Actions - Always Visible
+        <div class="quick-actions bg-gray-800 p-3 rounded-lg mb-3">
+          <div class="flex gap-2 mb-2">
+            <button
+              id="show-hint-btn"
+              class="flex-1 px-2 py-1 bg-yellow-600 text-white font-semibold rounded text-xs hover:bg-yellow-700"
+              title="Get a hint for current step"
+            >
+              💡 Hint
+            </button>
+            <button
+              id="show-all-steps-btn"
+              class="flex-1 px-2 py-1 bg-purple-600 text-white font-semibold rounded text-xs hover:bg-purple-700"
+              title="View all steps overview"
+            >
+              📋 Overview
+            </button>
+          </div>
+        </div> -->
+
+        <!-- Collapsible Sections -->
+        <div class="expandable-sections flex-grow">
+          <!-- Tips Section (Collapsible) -->
+          <div class="tips-section mb-2">
+            <button
+              id="toggle-tips"
+              class="w-full text-left bg-yellow-900 bg-opacity-30 p-2 rounded text-xs font-semibold text-yellow-400 hover:bg-yellow-900 hover:bg-opacity-50 flex items-center justify-between"
+            >
+              <span>💡 Tips for This Step</span>
+              <span id="tips-icon">▼</span>
+            </button>
+            <div
+              id="tips-content"
+              class="mt-1 px-2 py-1 text-xs text-gray-300"
+              style="display: none"
+            >
+              <div id="current-tips">
+                <!-- Tips populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- All Steps Overview (Collapsible) -->
+          <div class="steps-overview mb-2">
+            <button
+              id="toggle-all-steps"
+              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between"
+            >
+              <span>📋 All Steps</span>
+              <span id="steps-toggle-icon">▼</span>
+            </button>
+            <div
+              id="all-steps-content"
+              class="mt-1 space-y-1 max-h-32 overflow-y-auto"
+              style="display: none"
+            >
+              <!-- Steps populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Fixed Footer - Task Navigation -->
         <div
-          class="button-group flex flex-col gap-2 mt-auto pt-4 border-t border-[var(--border-color)]"
+          class="tutorial-footer pt-3 border-t border-[var(--border-color)] mt-auto"
         >
-          <div class="flex gap-2">
+          <div class="flex gap-2 mb-2">
             <button
               id="prev-task-btn"
-              class="flex-grow px-4 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Prev Task
+              ← Prev Task
             </button>
             <button
               id="next-task-btn"
-              class="flex-grow px-4 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Next Task
+              Next Task →
             </button>
           </div>
           <button
-            id="save-log-btn"
-            class="w-full px-4 py-2 bg-purple-600 text-white font-semibold rounded text-xs hover:bg-purple-700"
+            id="mark-complete-btn"
+            class="w-full px-3 py-2 bg-green-600 text-white font-semibold rounded text-xs hover:bg-green-700 disabled:opacity-50"
           >
-            Save Log
+            ✅ Mark Task Complete
           </button>
         </div>
       </div>
 
-      <div class="resizer" id="resizer-left"></div>
+      <!-- Left horizontal resizer -->
+      <div class="resizer horizontal-resize-handle" id="resizer-left"></div>
 
       <!-- Main Content Area (Editor & Output) -->
-      <div class="content-area flex-1 flex flex-col">
+      <div id="main-content" class="content-area flex-1 flex flex-col">
         <!-- Top part: Code editor -->
-        <div class="editor-pane border-b border-gray-700">
+        <div id="editor-pane" class="editor-pane">
           <div
             class="editor-toolbar bg-gray-800 p-2 flex justify-between items-center"
           >
@@ -152,10 +350,14 @@
           </div>
         </div>
 
-        <!-- The resize handle will be inserted here by JavaScript -->
+        <!-- Vertical resize handle between editor and output -->
+        <div
+          class="resize-handle vertical-resize-handle"
+          id="vertical-resizer"
+        ></div>
 
         <!-- Bottom part: Output (canvas + terminal) -->
-        <div class="output-pane flex flex-col">
+        <div id="output-pane" class="output-pane">
           <div class="canvas-container flex-1 bg-white">
             <div id="turtle-container"></div>
           </div>
@@ -165,38 +367,47 @@
         </div>
       </div>
 
-      <div class="resizer" id="resizer-right"></div>
+      <!-- Right horizontal resizer -->
+      <div class="resizer horizontal-resize-handle" id="resizer-right"></div>
 
       <!-- Right Sidebar (AI Chat) -->
       <div
         id="right-sidebar"
         class="right-sidebar bg-[var(--sidebar-bg)] w-80 p-4 flex flex-col flex-shrink-0 border-l border-[var(--border-color)]"
       >
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="font-bold text-xs uppercase tracking-wider">
-            AI Assistant
-          </h2>
-          <select
-            id="ai-mode-select"
-            class="bg-[#3c3c3c] border border-transparent rounded p-1 text-xs"
-          >
-            <option value="vibecoding" selected>Vibecoding</option>
-            <option value="reflective">Reflective</option>
-          </select>
+        <!-- AI Assistant Section -->
+        <div class="ai-assistant-section">
+          <div class="mb-2">
+            <span
+              class="block text-xs font-semibold mb-1 text-gray-300 uppercase tracking-wider"
+              >🤖 AI ASSISTANT</span
+            >
+            <select
+              id="ai-mode-select"
+              class="ai-mode-select-compact"
+              title="Choose AI Assistant"
+            >
+              <option value="vibecoding">Assistant A</option>
+              <option value="reflective">Assistant B</option>
+            </select>
+          </div>
         </div>
+
+        <!-- Rest of chat interface -->
         <div
           id="chat-container"
           class="flex-grow overflow-y-auto space-y-4 pr-2"
         >
           <!-- Chat messages will be appended here -->
         </div>
+
         <div
           class="chat-input-area border-t border-[var(--border-color)] pt-2 mt-2"
         >
           <input
             id="ai-prompt-input"
             type="text"
-            placeholder="Ask for a suggestion..."
+            placeholder="💭 Ask for a suggestion..."
             class="w-full bg-[#3c3c3c] border border-transparent rounded p-2 text-xs placeholder-gray-500"
           />
           <div class="flex gap-2 mt-2">
@@ -204,7 +415,7 @@
               id="get-ai-suggestion-btn"
               class="w-full px-4 py-1 bg-[var(--blue-accent)] text-white font-semibold rounded text-xs hover:bg-opacity-80"
             >
-              Send
+              📤 Send
             </button>
           </div>
         </div>

@@ -1,0 +1,43 @@
+.resizer,
+.resize-handle {
+  background-color: var(--border-color);
+  transition: background-color var(--transition-fast);
+  z-index: 10;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.resizer:hover,
+.resize-handle:hover,
+.resizer:active,
+.resize-handle:active {
+  background-color: var(--blue-accent);
+}
+
+.horizontal-resize-handle {
+  width: var(--resize-handle-size);
+  height: 100%;
+  cursor: col-resize;
+}
+
+.vertical-resize-handle {
+  height: var(--resize-handle-size);
+  width: 100%;
+  cursor: row-resize;
+}
+
+/* Prevent selection during resize */
+body.resizing {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default !important;
+}
+
+body.resizing * {
+  cursor: inherit !important;
+  pointer-events: none;
+}
+
+body.resizing .resize-handle {
+  pointer-events: auto;
+}

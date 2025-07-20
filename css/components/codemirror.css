@@ -1,0 +1,63 @@
+.CodeMirror {
+  height: 100% !important;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-base);
+  /* Ensure editor is immediately ready */
+  min-height: 200px;
+}
+
+.cm-s-dracula.CodeMirror,
+.cm-s-dracula .CodeMirror-gutters {
+  background-color: var(--editor-bg) !important;
+  color: var(--text-color) !important;
+  border: none;
+}
+
+.cm-s-dracula .CodeMirror-linenumber {
+  color: #6c757d;
+}
+
+/* Editor container layout */
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  /* Ensure container is ready for CodeMirror */
+  position: relative;
+}
+
+.editor-container .CodeMirror {
+  flex: 1 !important;
+  height: 100% !important; /* Force 100% height */
+  min-height: 200px !important;
+  max-height: none !important;
+  position: absolute !important; /* Use absolute positioning */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.CodeMirror-scroll {
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler {
+  background-color: var(--editor-bg) !important;
+}
+
+/* Ensure cursor is visible from the start */
+.CodeMirror-cursor {
+  border-left: 1px solid #ffffff;
+}
+
+/* Make sure editor is interactive immediately */
+.CodeMirror-focused .CodeMirror-cursor {
+  display: block;
+}

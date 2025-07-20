@@ -1,0 +1,176 @@
+.chat-message {
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-sm);
+  border-radius: 0.375rem;
+  max-width: 100%;
+  color: var(--text-color);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.chat-message .text-sm {
+  line-height: 1.6;
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+}
+
+.chat-message code {
+  background-color: #374151;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.875em;
+}
+
+.chat-message strong {
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.chat-message em {
+  font-style: italic;
+  color: #d1d5db;
+}
+
+/* Ensure proper spacing for lists and paragraphs */
+.chat-message p {
+  margin-bottom: 0.5rem;
+}
+
+.chat-message p:last-child {
+  margin-bottom: 0;
+}
+
+/* Better formatting for numbered lists */
+.chat-message ol,
+.chat-message ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.chat-message li {
+  margin-bottom: 0.25rem;
+}
+
+.user-message {
+  background-color: var(--user-message-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.user-message .mb-1 {
+  display: flex;
+  align-items: center;
+}
+
+.user-message svg {
+  flex-shrink: 0;
+  margin-right: var(--space-xs);
+  vertical-align: middle;
+}
+
+.ai-message {
+  background-color: var(--ai-message-bg);
+  border-left: 3px solid var(--blue-accent);
+}
+
+.system-message {
+  background-color: var(--system-message-bg);
+  font-style: italic;
+  font-size: var(--font-size-xs);
+  padding: 8px;
+  text-align: center;
+}
+
+/* Code blocks in chat */
+.code-suggestion {
+  border: 1px solid #3a404a;
+  margin-top: 8px;
+}
+
+.code-suggestion pre {
+  margin: 0;
+  background-color: var(--editor-bg);
+  overflow-x: auto;
+}
+
+.code-suggestion pre code {
+  color: var(--text-color);
+}
+
+.code-suggestion code {
+  font-family: var(--font-family-mono);
+  white-space: pre;
+}
+
+.chat-bubble pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: var(--editor-bg);
+  padding: var(--space-md);
+  border-radius: 0.25rem;
+}
+
+/* AI options */
+.ai-options-container {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.ai-option-button {
+  background-color: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text-color);
+  transition: all var(--transition-fast);
+}
+
+.ai-option-button:hover {
+  background-color: var(--blue-accent);
+  border-color: var(--blue-accent);
+}
+
+/* Compact corner controls */
+.sidebar-corner-controls {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 20;
+}
+
+.ai-mode-select-compact {
+  background-color: rgba(60, 60, 60, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(4px);
+  min-width: 90px;
+}
+
+.ai-mode-select-compact:focus,
+.ai-mode-select-compact:hover {
+  outline: none;
+  border-color: var(--blue-accent);
+  background-color: var(--sidebar-bg);
+}
+
+/* Make sure sidebar has relative positioning */
+.right-sidebar {
+  position: relative;
+  padding-top: var(--space-lg); /* Make room for corner dropdown */
+}
+
+/* Adjust chat container to not overlap */
+.chat-container {
+  margin-top: var(--space-sm);
+  /* Ensure it doesn't overlap with corner controls */
+}

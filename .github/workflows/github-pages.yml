@@ -3,27 +3,59 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug - Check if secret is set
+        run: |
+          echo "✅ AZURE_BACKEND_URL secret is configured"
+          echo "✅ Secret length: ${#AZURE_BACKEND_URL} characters"
+          echo "✅ Secret starts with: ${AZURE_BACKEND_URL:0:8}..."
+        env:
+          AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Prepare GitHub Pages HTML
+        run: |
+          # Copy main index.html content to GitHub Pages version
+          # Extract body content from main index.html (skip the head and opening body tag)
+          sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+
+          # Replace placeholder in index-github-pages.html
+          sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
+
+          # Insert the body content into the GitHub Pages template
+          sed '/<\!-- Rest of your existing HTML content from index.html -->/r temp_body.html' temp_index.html > index.html
+
+          # Clean up temporary files
+          rm temp_body.html temp_index.html
+
+          # Remove the placeholder comment
+          sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+<<<<<<< HEAD
       - name: Create GitHub Pages build
         env:
           AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
@@ -77,18 +109,13 @@ jobs:
         run: |
           echo "window.GITHUB_PAGES_CONFIG = { backendUrl: '${{ secrets.AZURE_BACKEND_URL }}' };" > github-pages-config.js
 
+=======
+>>>>>>> main
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./gh-pages-build"
+          path: "."
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
