@@ -60,7 +60,7 @@
       ) {
         console.log("Testing backend connection to:", window.BACKEND_URL);
 
-        // Test the health endpoint
+        // Test the health endpoint (FIXED: add /api prefix)
         fetch(`${window.BACKEND_URL}/api/health`)
           .then((response) => {
             if (!response.ok) {
@@ -77,15 +77,9 @@
           })
           .catch((error) => {
             console.error("❌ Backend health check failed:", error);
-            document.getElementById("backend-status").textContent =
-              "❌ Backend Offline";
-
-            // Show more detailed error info
-            const notice = document.getElementById("github-pages-notice");
-            notice.innerHTML = `
-              🚀 Running on GitHub Pages - Backend powered by Azure |
-              <span style="color: #ff6b6b;">❌ Backend connection failed: ${error.message}</span>
-            `;
+            document.getElementById(
+              "backend-status"
+            ).textContent = `❌ ${error.message}`;
           });
       } else {
         console.error("❌ Backend URL not configured");

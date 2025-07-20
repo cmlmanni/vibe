@@ -6,16 +6,15 @@ export async function getAIResponse(
   temperature = 0.7
 ) {
   try {
-    // Get backend URL from experiment config instead of hardcoded function
-    const backendUrl = window.experimentConfig?.backendUrl;
-
-    if (!backendUrl) {
+    // Get backend URL from global experiment config
+    const experimentConfig = window.experimentConfig;
+    if (!experimentConfig || !experimentConfig.backendUrl) {
       throw new Error(
-        "Backend URL not available. Experiment config not initialized?"
+        "Backend URL not available. Experiment config not initialized or failed."
       );
     }
 
-    const apiEndpoint = `${backendUrl}/api/openai`;
+    const apiEndpoint = `${experimentConfig.backendUrl}/api/openai`;
     console.log("Using API endpoint:", apiEndpoint);
 
     let requestBody;

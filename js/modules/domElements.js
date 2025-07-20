@@ -16,7 +16,7 @@ export function initializeDOMElements() {
     nextTaskBtn: document.getElementById("next-task-btn"),
     prevSubstepBtn: document.getElementById("prev-substep-btn"),
     nextSubstepBtn: document.getElementById("next-substep-btn"),
-    saveLogBtn: document.getElementById("save-log-btn"),
+    saveLogBtn: document.getElementById("save-log-btn"), // ✅ ADD THIS
   };
 
   // Debug log missing elements

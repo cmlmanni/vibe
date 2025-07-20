@@ -7,7 +7,9 @@ function getBackendUrl() {
 
     if (!backendUrl || backendUrl === "BACKEND_URL_PLACEHOLDER") {
       console.error("❌ Backend URL not configured for GitHub Pages");
-      return null;
+      throw new Error(
+        "Backend URL not configured for GitHub Pages. Check GitHub secrets."
+      );
     }
 
     console.log("🌐 GitHub Pages - Using backend:", backendUrl);
@@ -22,19 +24,34 @@ function getBackendUrl() {
     return "http://localhost:3000";
   }
 
-  // Azure App Service (both frontend and backend on same domain)
-  return window.location.origin;
+  // Azure App Service (same domain)
+  if (window.location.hostname.includes("azurewebsites.net")) {
+    return window.location.origin;
+  }
+
+  // Default fallback
+  console.warn("⚠️ Unknown hostname, using relative paths");
+  return "";
 }
 
 export function initializeExperimentConfig() {
-  const backendUrl = getBackendUrl();
+  let backendUrl;
 
-  if (!backendUrl) {
-    console.error("❌ No backend URL available");
+  try {
+    backendUrl = getBackendUrl();
+  } catch (error) {
+    console.error("❌ Failed to get backend URL:", error);
     return null;
   }
 
   console.log(`🔧 Backend URL: ${backendUrl}`);
+  console.log(
+    `🌐 Environment: ${
+      window.location.hostname.includes("github.io")
+        ? "GitHub Pages"
+        : "Local/Azure"
+    }`
+  );
 
   // Test backend connectivity with CORRECT endpoint
   fetch(`${backendUrl}/api/health`) // Fixed: added /api prefix
@@ -122,6 +139,6 @@ export function initializeExperimentConfig() {
     getDefaultAssistant,
     getCurrentConditionInfo,
     getCounterbalanceCondition,
-    backendUrl, // Export the backend URL
+    backendUrl, // Export the backend URL for AI system
   };
 }
