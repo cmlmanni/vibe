@@ -36,11 +36,11 @@ jobs:
 
       - name: Prepare GitHub Pages HTML
         run: |
-          # Copy main index.html content to GitHub Pages version
-          # Extract body content from main index.html (skip the head and opening body tag)
-          sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+          # Get the GitHub Pages URL dynamically
+          GITHUB_PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY##*/}"
+          echo "GitHub Pages URL: $GITHUB_PAGES_URL"
 
-          # Replace placeholder in index-github-pages.html
+          # Replace placeholder with the dynamic URL
           sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
 
           # Insert the body content into the GitHub Pages template
@@ -52,65 +52,20 @@ jobs:
           # Remove the placeholder comment
           sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
 
+          # Debug: Check if CSS files exist
+          echo "CSS files check:"
+          ls -la css/ || echo "CSS directory not found"
+
+          # Debug: Show first few lines of generated index.html
+          echo "Generated index.html preview:"
+          head -30 index.html
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-<<<<<<< HEAD
-      - name: Create GitHub Pages build
-        env:
-          AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
-        run: |
-          # Debug: Check if secret is set (without revealing the value)
-          if [ -z "$AZURE_BACKEND_URL" ]; then
-            echo "❌ AZURE_BACKEND_URL secret is not set or empty"
-            exit 1
-          else
-            echo "✅ AZURE_BACKEND_URL secret is configured"
-            echo "✅ Secret length: ${#AZURE_BACKEND_URL} characters"
-            echo "✅ Secret starts with: ${AZURE_BACKEND_URL:0:8}..."
-          fi
-
-          # Create a build directory for GitHub Pages
-          mkdir -p gh-pages-build
-
-          # Copy static files (HTML, CSS, JS)
-          cp -r css gh-pages-build/
-          cp -r js gh-pages-build/
-          cp -r vibe-app gh-pages-build/          # Create a modified index.html with GitHub Pages configuration
-          DEPLOYMENT_TIME=$(date)
-
-          # Create the GitHub Pages version with injected configuration
-          # Use a simpler approach - replace a placeholder in the original file
-          cp index.html gh-pages-build/index.html
-
-          # Insert the GitHub Pages configuration script right after the opening <head> tag
-          sed -i '/<head>/a\
-              <!-- GitHub Pages Configuration -->\
-              <script>\
-                window.GITHUB_PAGES_CONFIG = {\
-                  backendUrl: '\''$AZURE_BACKEND_URL'\'',\
-                  environment: '\''github-pages'\'',\
-                  deploymentTime: '\''$DEPLOYMENT_TIME'\''\
-                };\
-                console.log('\''🔍 GitHub Pages Config Loaded:'\'', window.GITHUB_PAGES_CONFIG);\
-              </script>' gh-pages-build/index.html
-
-          # Debug: Show the generated config in build logs
-          echo "📝 Generated GitHub Pages configuration:"
-          grep -A 10 "GITHUB_PAGES_CONFIG" gh-pages-build/index.html || echo "❌ Config not found in generated HTML"
-
-          # Add GitHub Pages notice to the body
-          sed -i 's|<body class="text-sm">|<body class="text-sm">\
-            <div id="github-pages-notice" class="bg-blue-600 text-white text-center py-2 text-xs">\
-              🚀 Running on GitHub Pages - Backend powered by Azure\
-            </div>|' gh-pages-build/index.html
-
-      - name: Configure backend URL for GitHub Pages
-        run: |
-          echo "window.GITHUB_PAGES_CONFIG = { backendUrl: '${{ secrets.AZURE_BACKEND_URL }}' };" > github-pages-config.js
-
-=======
->>>>>>> main
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

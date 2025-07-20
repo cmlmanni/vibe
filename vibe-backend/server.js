@@ -10,58 +10,57 @@ console.log("Port:", process.env.PORT || 3000);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Enable detailed logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
+// Security-focused CORS configuration
+const getCorsOptions = () => {
+  const isDevelopment = process.env.NODE_ENV !== "production";
 
-// Enable CORS - Updated for Azure deployment
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+  return {
+    origin: (origin, callback) => {
+      // Allow same-origin requests
       if (!origin) return callback(null, true);
 
-      // In production, allow any origin that ends with your Azure domain
-      // For development, allow localhost
-      const allowedOrigins = [
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-      ];
-
-      // Add frontend URL from environment variable if available
-      if (process.env.FRONTEND_URL) {
-        allowedOrigins.push(process.env.FRONTEND_URL);
-      }
-      if (process.env.FRONTEND_URL_AZURE) {
-        allowedOrigins.push(process.env.FRONTEND_URL_AZURE);
-      }
-      if (process.env.FRONTEND_URL_GITHUB_PAGES) {
-        allowedOrigins.push(process.env.FRONTEND_URL_GITHUB_PAGES);
-      }
-
-      // Check if origin is allowed or if it's an Azure domain or GitHub Pages
+      // Development - allow localhost
       if (
-        allowedOrigins.includes(origin) ||
-        (origin && origin.includes(".azurewebsites.net")) ||
-        (origin && origin.includes(".github.io"))
+        isDevelopment &&
+        origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)
       ) {
-        callback(null, true);
-      } else {
-        console.log("CORS blocked origin:", origin);
-        callback(null, true); // Allow all origins for now - tighten in production
+        return callback(null, true);
       }
-    },
-    methods: ["GET", "POST", "OPTIONS"],
-    credentials: true,
-  })
-);
 
-// Parse JSON request bodies
-app.use(express.json());
+      // Check environment-configured origins
+      const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+        .split(",")
+        .filter(Boolean);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Development only - pattern matching
+      if (isDevelopment && origin.match(/^https:\/\/[\w-]+\.github\.io$/)) {
+        return callback(null, true);
+      }
+
+      // Log blocked attempts for security monitoring
+      console.warn(
+        `🚫 CORS blocked origin: ${origin} from IP: ${req?.ip || "unknown"}`
+      );
+      callback(new Error("Not allowed by CORS policy"));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
+};
+
+app.use(cors(getCorsOptions()));
+
+// Handle preflight requests
+app.options("*", cors(getCorsOptions()));
+
+// Middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the parent directory (for frontend)
 const path = require("path");

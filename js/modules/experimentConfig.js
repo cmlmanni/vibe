@@ -1,5 +1,35 @@
 /* filepath: /js/modules/experimentConfig.js */
+// Add GitHub Pages detection
+function getBackendUrl() {
+  // Check if running on GitHub Pages
+  if (window.location.hostname.includes("github.io")) {
+    return window.BACKEND_URL || "https://your-azure-app.azurewebsites.net";
+  }
+
+  // Local development
+  return "http://localhost:3000";
+}
+
 export function initializeExperimentConfig() {
+  const backendUrl = getBackendUrl();
+
+  console.log(`🔧 Backend URL: ${backendUrl}`);
+  console.log(
+    `🌐 Environment: ${
+      window.location.hostname.includes("github.io") ? "GitHub Pages" : "Local"
+    }`
+  );
+
+  // Test backend connectivity
+  fetch(`${backendUrl}/health`)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("✅ Backend connectivity test:", data);
+    })
+    .catch((error) => {
+      console.error("❌ Backend connectivity failed:", error);
+    });
+
   // Configuration for experimental conditions
   const EXPERIMENT_CONFIG = {
     // Counterbalancing: determines which assistant (A or B) maps to which AI type

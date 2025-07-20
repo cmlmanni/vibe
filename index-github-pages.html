@@ -3,23 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Playful Introduction to Python (with AI)</title>
+    <title>VIBE - AI Programming Assistant Experiment</title>
 
-    <!-- GitHub Pages Configuration -->
-    <script>
-      // GitHub Pages configuration - will be populated by GitHub Actions
-      window.GITHUB_PAGES_CONFIG = {
-        backendUrl: "BACKEND_URL_PLACEHOLDER",
-        environment: "github-pages",
-      };
-    </script>
-    <script src="github-pages-config.js"></script>
-
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Link to your custom CSS file -->
-    <link rel="stylesheet" href="css/style.css" />
+    <!-- Use relative paths that work on GitHub Pages -->
+    <link rel="stylesheet" href="./css/style.css" />
 
     <!-- Fonts -->
     <link
@@ -31,7 +18,7 @@
       rel="stylesheet"
     />
 
-    <!-- CodeMirror for the code editor -->
+    <!-- CodeMirror -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.css"
@@ -40,6 +27,16 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/theme/dracula.min.css"
     />
+
+    <!-- GitHub Pages specific configuration -->
+    <script>
+      // Set backend URL for GitHub Pages
+      window.BACKEND_URL = "BACKEND_URL_PLACEHOLDER";
+
+      // Debug info
+      console.log("🌐 Running on GitHub Pages");
+      console.log("📡 Backend URL:", window.BACKEND_URL);
+    </script>
   </head>
   <body class="text-sm">
     <!-- GitHub Pages Notice -->
@@ -47,10 +44,29 @@
       id="github-pages-notice"
       class="bg-blue-600 text-white text-center py-2 text-xs"
     >
-      🚀 Running on GitHub Pages - Backend powered by Azure
+      🚀 Running on GitHub Pages - Backend powered by Azure |
+      <span id="backend-status">Testing connection...</span>
     </div>
 
     <!-- Rest of your existing HTML content from index.html -->
-    <!-- This would be populated by the GitHub Actions workflow -->
+    <!-- This content will be inserted by the GitHub Actions workflow -->
+
+    <!-- GitHub Pages specific scripts - load after main content -->
+    <script type="module">
+      // Test backend connection and show status
+      if (window.BACKEND_URL) {
+        fetch(`${window.BACKEND_URL}/health`)
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("backend-status").textContent =
+              "✅ Backend Connected";
+          })
+          .catch((error) => {
+            document.getElementById("backend-status").textContent =
+              "❌ Backend Offline";
+            console.error("Backend test failed:", error);
+          });
+      }
+    </script>
   </body>
 </html>
