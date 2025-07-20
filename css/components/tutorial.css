@@ -208,16 +208,16 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* For Python-specific keywords */
-.tip-item code.inline-code.python-keyword {
+/* Python syntax highlighting */
+.tip-item .python-keyword {
   color: #ff79c6;
 }
 
-.tip-item code.inline-code.python-function {
+.tip-item .python-function {
   color: #50fa7b;
 }
 
-.tip-item code.inline-code.python-number {
+.tip-item .python-number {
   color: #bd93f9;
 }
 

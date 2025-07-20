@@ -5,7 +5,7 @@ import {
   ensureEditorReady,
 } from "./modules/codeMirrorSetup.js"; // Import the new function
 import { initializeEventLogging } from "./modules/eventLogging.js";
-import { initializeTutorial } from "./modules/tutorialLogic.js";
+import { initializeTutorial } from "./modules/tutorial/index.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";
 import { initializeAIAssistants } from "./modules/ai/index.js";
 import { setupResizablePanels } from "./modules/resizablePanels.js";
