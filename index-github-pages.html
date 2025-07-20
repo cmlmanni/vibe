@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VIBE - AI Programming Assistant Experiment</title>
 
-    <!-- FIX: Use the correct CSS file -->
-    <link rel="stylesheet" href="./css/main.css" />
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- IMPORTANT: Link to your custom CSS file -->
+    <link rel="stylesheet" href="css/main.css" />
 
     <!-- Fonts -->
     <link
@@ -51,6 +54,15 @@
     <!-- Rest of your existing HTML content from index.html -->
     <!-- This content will be inserted by the GitHub Actions workflow -->
 
+    <!-- External Libraries - ADD THESE -->
+    <script src="js/skulpt/skulpt.min.js"></script>
+    <script src="js/skulpt/skulpt-stdlib.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/python/python.min.js"></script>
+
+    <!-- Link to your custom JS file - ADD THIS -->
+    <script type="module" src="js/script.js"></script>
+
     <!-- GitHub Pages specific scripts - load after main content -->
     <script type="module">
       // Test backend connection and show status
@@ -60,7 +72,7 @@
       ) {
         console.log("Testing backend connection to:", window.BACKEND_URL);
 
-        // Test the health endpoint (FIXED: add /api prefix)
+        // Test the health endpoint
         fetch(`${window.BACKEND_URL}/api/health`)
           .then((response) => {
             if (!response.ok) {
