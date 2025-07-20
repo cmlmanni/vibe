@@ -1,7 +1,7 @@
 {
-  "name": "vibe-experimental-app",
+  "name": "vibe-app",
   "version": "1.0.0",
-  "description": "AI Programming Assistant Experiment",
+  "description": "Playful Introduction to Python (with AI)",
   "main": "vibe-backend/server.js",
   "scripts": {
     "start": "node vibe-backend/server.js",
@@ -28,7 +28,7 @@
     "python",
     "turtle-graphics",
     "azure-openai",
-    "experiment"
+    "coding-environment"
   ],
   "author": "Your Name",
   "license": "MIT"

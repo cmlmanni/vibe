@@ -3,6 +3,16 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -10,7 +20,7 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     environment:
@@ -19,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Debug - Check if secret is set
         run: |
@@ -30,100 +40,27 @@ jobs:
           AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: "18"
 
       - name: Prepare GitHub Pages HTML
         run: |
-          # Debug: List all files
-          echo "📁 Repository contents:"
-          find . -type f -name "*.html" -o -name "*.css" -o -name "*.js" | head -20
-
-          # Check if source files exist
-          if [ ! -f "index.html" ]; then
-            echo "❌ index.html not found"
-            exit 1
-          fi
-
-          if [ ! -f "index-github-pages.html" ]; then
-            echo "❌ index-github-pages.html not found"
-            exit 1
-          fi
-
-          # Check CSS structure
-          echo "🎨 CSS files available:"
-          find css/ -name "*.css" | head -10
-
-          # Verify main.css exists
-          if [ ! -f "css/main.css" ]; then
-            echo "❌ css/main.css not found!"
-            echo "Available CSS files:"
-            ls -la css/
-            exit 1
-          fi
-
-          # Extract body content from main index.html
-          echo "📄 Extracting body content from index.html..."
+          # Copy main index.html content to GitHub Pages version
+          # Extract body content from main index.html (skip the head and opening body tag)
           sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
 
-          # Verify extraction worked
-          if [ ! -f temp_body.html ] || [ ! -s temp_body.html ]; then
-            echo "❌ Failed to extract body content or file is empty"
-            echo "Trying alternative body tag pattern..."
-            sed -n '/<body[^>]*>/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
-            
-            if [ ! -s temp_body.html ]; then
-              echo "❌ Still no body content found"
-              echo "🔍 Debugging: First 20 lines of index.html:"
-              head -20 index.html
-              exit 1
-            fi
-          fi
-
-          echo "✅ Body content extracted: $(wc -l < temp_body.html) lines"
-
-          # Replace placeholder with the backend URL
-          echo "🔧 Processing GitHub Pages template..."
+          # Replace placeholder in index-github-pages.html
           sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
 
-          # Verify replacement worked
-          if grep -q "BACKEND_URL_PLACEHOLDER" temp_index.html; then
-            echo "❌ Backend URL placeholder not replaced!"
-            exit 1
-          fi
-
           # Insert the body content into the GitHub Pages template
-          echo "📝 Inserting body content into template..."
           sed '/<\!-- Rest of your existing HTML content from index.html -->/r temp_body.html' temp_index.html > index.html
 
           # Clean up temporary files
-          echo "🧹 Cleaning up temporary files..."
-          rm -f temp_body.html temp_index.html
+          rm temp_body.html temp_index.html
 
           # Remove the placeholder comment
           sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
-
-          # Final verification
-          echo "🔍 Final verification:"
-          echo "- Backend URL configured: $(grep -c 'window.BACKEND_URL' index.html || echo 0)"
-          echo "- CSS linked: $(grep -c 'css/main.css' index.html || echo 0)"
-          echo "- Script modules: $(grep -c 'type="module"' index.html || echo 0)"
-
-          # Show preview
-          echo "📋 Generated index.html preview (first 30 lines):"
-          head -30 index.html
-        env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -44,8 +44,8 @@ IF NOT DEFINED KUDU_SYNC_CMD (
   call npm install kudusync -g --silent
   IF !ERRORLEVEL! NEQ 0 goto error
 
-  :: Locally just running "kuduSync" would also work
-  SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
+  :: Locally just running "kudu sync"
+  SET KUDU_SYNC_CMD=%appdata%\npm\kudu-sync.cmd
 )
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -76,9 +76,10 @@ IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   popd
 )
 
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 goto end
 
-:: Execute command routine
+:: Execute command routine that will echo out when error
 :ExecuteCmd
 setlocal
 set _CMD_=%*
