@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Debug - Check if secret is set
         run: |
@@ -35,27 +35,95 @@ jobs:
           AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Prepare GitHub Pages HTML
         run: |
-          # Copy main index.html content to GitHub Pages version
-          # Extract body content from main index.html (skip the head and opening body tag)
+          # Verify source files exist
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html not found"
+            exit 1
+          fi
+
+          if [ ! -f "index-github-pages.html" ]; then
+            echo "❌ index-github-pages.html template not found"
+            exit 1
+          fi
+
+          # Debug: Show file structure
+          echo "📁 Current directory structure:"
+          ls -la
+          echo "🎨 CSS files:"
+          find css/ -name "*.css" | head -5
+          echo "🔧 JS files:"
+          find js/ -name "*.js" | head -5
+
+          # Extract body content from main index.html
+          echo "📄 Extracting body content from index.html..."
           sed -n '/<body class="text-sm">/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
 
-          # Replace placeholder in index-github-pages.html
+          # Verify extraction worked
+          if [ ! -f temp_body.html ] || [ ! -s temp_body.html ]; then
+            echo "❌ Failed to extract body content or file is empty"
+            echo "🔍 Trying alternative body pattern..."
+            sed -n '/<body[^>]*>/,/<\/body>/p' index.html | sed '1d;$d' > temp_body.html
+            
+            if [ ! -s temp_body.html ]; then
+              echo "❌ Still no body content found"
+              echo "📋 First 20 lines of index.html for debugging:"
+              head -20 index.html
+              exit 1
+            fi
+          fi
+
+          echo "✅ Body content extracted: $(wc -l < temp_body.html) lines"
+
+          # Replace placeholder with backend URL
+          echo "🔧 Processing GitHub Pages template..."
           sed "s|BACKEND_URL_PLACEHOLDER|${{ secrets.AZURE_BACKEND_URL }}|g" index-github-pages.html > temp_index.html
 
-          # Insert the body content into the GitHub Pages template
+          # Verify replacement worked
+          if grep -q "BACKEND_URL_PLACEHOLDER" temp_index.html; then
+            echo "❌ Backend URL placeholder not replaced!"
+            echo "🔍 Template content:"
+            head -10 temp_index.html
+            exit 1
+          fi
+
+          echo "✅ Backend URL replaced successfully"
+
+          # Insert body content into template
+          echo "📝 Inserting body content into template..."
           sed '/<\!-- Rest of your existing HTML content from index.html -->/r temp_body.html' temp_index.html > index.html
 
-          # Clean up temporary files
-          rm temp_body.html temp_index.html
-
-          # Remove the placeholder comment
+          # Remove placeholder comment
           sed -i '/<\!-- Rest of your existing HTML content from index.html -->/d' index.html
+
+          # Clean up temporary files
+          rm -f temp_body.html temp_index.html
+
+          # Final verification
+          echo "🔍 Final verification:"
+          echo "- Backend URL configured: $(grep -c 'window.BACKEND_URL' index.html || echo 0)"
+          echo "- CSS linked: $(grep -c 'css/main.css' index.html || echo 0)"
+          echo "- Script modules: $(grep -c 'type="module"' index.html || echo 0)"
+
+          # Debug: Show final file structure
+          echo "📋 Final file sizes:"
+          ls -lh index.html css/main.css js/script.js || echo "Some files missing"
+
+        env:
+          AZURE_BACKEND_URL: ${{ secrets.AZURE_BACKEND_URL }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
 
       - name: Deploy to GitHub Pages
         id: deployment
