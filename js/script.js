@@ -12,6 +12,7 @@ import { setupResizablePanels } from "./modules/resizablePanels.js";
 import { initializeContainerManagement } from "./modules/containerManagement.js";
 import { initializeExperimentConfig } from "./modules/experimentConfig.js";
 import { initializeExperimentModal } from "./modules/experimentModal.js";
+import { initializeSurveyModal } from "./modules/surveyModal.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Initializing VIBE experimental application...");
@@ -20,10 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize all modules
     const domElements = initializeDOMElements();
     const eventLogger = initializeEventLogging();
-    const experimentConfig = initializeExperimentConfig();
-
-    // Make experiment config globally available for API client
-    window.experimentConfig = experimentConfig;
+    const experimentConfig = initializeExperimentConfig(eventLogger);
 
     console.log("📋 Setting up experiment modal...");
 
@@ -33,8 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
       eventLogger
     );
 
+    // Initialize survey modal
+    const surveyModal = initializeSurveyModal(eventLogger);
+
     // Set up event listeners BEFORE showing modal
     experimentModal.setupModalEventListeners();
+    surveyModal.setupSurveyModalEventListeners();
 
     // Show modal
     experimentModal.showExperimentModal();
@@ -43,7 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize other modules (these will be ready when modal is dismissed)
     const editor = setupCodeMirror(domElements.codeEditorTextArea);
-    const tutorial = initializeTutorial(domElements, eventLogger);
+    const tutorial = initializeTutorial(
+      domElements,
+      eventLogger,
+      surveyModal,
+      experimentConfig
+    ); // Pass surveyModal
     const skulptRunner = initializeSkulpt(domElements, eventLogger);
     const aiAssistants = initializeAIAssistants(
       domElements,

@@ -5,9 +5,26 @@ import {
   setupToggleListeners,
 } from "./tutorialDisplay.js";
 
-export function createTutorialLogic(eventLogger) {
+function debugTaskStructure() {
+  console.log("=== TASK STRUCTURE DEBUG ===");
+  tutorialTasks.forEach((task, index) => {
+    console.log(
+      `Task ${index}: ${task.title} (${task.type}) - AI: ${task.aiAllowed}`
+    );
+  });
+  console.log("=============================");
+}
+
+export function createTutorialLogic(
+  eventLogger,
+  surveyModal,
+  experimentConfig
+) {
   let currentTaskIndex = 0;
   let currentStepIndex = 0;
+
+  // Debug task structure on initialization
+  debugTaskStructure();
 
   // Load a specific step
   function loadStep(stepIdx) {
@@ -107,11 +124,13 @@ export function createTutorialLogic(eventLogger) {
       // Mark task as completed
       tutorialTasks[taskIndex].completed = true;
 
+      const task = tutorialTasks[taskIndex];
+
       // Log the completion
       eventLogger.logEvent("task_completed", {
         taskIndex,
-        taskType: tutorialTasks[taskIndex].type,
-        paradigm: tutorialTasks[taskIndex].paradigm,
+        taskType: task.type,
+        paradigm: task.paradigm,
       });
 
       // Save progress log
@@ -126,10 +145,31 @@ export function createTutorialLogic(eventLogger) {
         eventLogger
       );
 
-      // Move to next task if available
+      // Check if this task needs a survey (Task 1: Draw a House, Task 2: House Class)
+      const needsSurvey =
+        (taskIndex === 2 || taskIndex === 3) &&
+        (task.type === "procedural_programming" ||
+          task.type === "object_oriented_programming");
+
+      console.log(
+        `Task ${taskIndex} (${task.type}) - Needs survey: ${needsSurvey}`
+      );
+
+      // Always continue to next task first
       if (taskIndex < tutorialTasks.length - 1) {
         setTimeout(() => {
           loadTaskAndStep(taskIndex + 1, 0);
+
+          // THEN show survey modal if needed (non-blocking)
+          if (needsSurvey && surveyModal) {
+            setTimeout(() => {
+              const currentCondition =
+                experimentConfig?.getCurrentConditionInfo();
+              const aiCondition =
+                currentCondition?.currentAssistant || "unknown";
+              surveyModal.showSurveyModal(taskIndex, task.title, aiCondition);
+            }, 1000); // Show modal after task transition
+          }
         }, 500);
       } else {
         // All tasks completed
@@ -138,6 +178,16 @@ export function createTutorialLogic(eventLogger) {
           completedTasks: tutorialTasks.filter((t) => t.completed).length,
         });
         console.log("🎉 All tasks completed!");
+
+        // Show final survey if needed
+        if (needsSurvey && surveyModal) {
+          setTimeout(() => {
+            const currentCondition =
+              experimentConfig?.getCurrentConditionInfo();
+            const aiCondition = currentCondition?.currentAssistant || "unknown";
+            surveyModal.showSurveyModal(taskIndex, task.title, aiCondition);
+          }, 1000);
+        }
       }
     }
   }
@@ -185,7 +235,7 @@ export function createTutorialLogic(eventLogger) {
     prevStep,
 
     // Task management
-    completeTaskAndContinue, // MAKE SURE THIS IS INCLUDED
+    completeTaskAndContinue,
     getTaskMetadata: (task) => getTaskMetadata(task),
 
     // Initialization
