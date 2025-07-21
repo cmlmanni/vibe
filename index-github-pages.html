@@ -84,19 +84,24 @@
           })
           .then((data) => {
             console.log("✅ Backend health check successful:", data);
-            document.getElementById("backend-status").textContent =
-              "✅ Backend Connected";
+            const statusElement = document.getElementById("backend-status");
+            if (statusElement) {
+              statusElement.textContent = "✅ Backend Connected";
+            }
           })
           .catch((error) => {
             console.error("❌ Backend health check failed:", error);
-            document.getElementById(
-              "backend-status"
-            ).textContent = `❌ ${error.message}`;
+            const statusElement = document.getElementById("backend-status");
+            if (statusElement) {
+              statusElement.textContent = `❌ ${error.message}`;
+            }
           });
       } else {
         console.error("❌ Backend URL not configured");
-        document.getElementById("backend-status").textContent =
-          "❌ Config Missing";
+        const statusElement = document.getElementById("backend-status");
+        if (statusElement) {
+          statusElement.textContent = "❌ Config Missing";
+        }
       }
     </script>
   </body>

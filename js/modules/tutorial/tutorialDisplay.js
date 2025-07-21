@@ -234,8 +234,8 @@ export function updateNavigationButtons(
     } else {
       const isLastTask = currentTaskIndex === tutorialTasks.length - 1;
       completeBtn.textContent = isLastTask
-        ? "✅ Complete Final Task"
-        : "✅ Complete Task & Continue";
+        ? "✅ Mark Final Task as Completed "
+        : "✅ Mark Task as Completed & Continue";
       completeBtn.disabled = false;
       completeBtn.classList.remove("bg-gray-500");
       completeBtn.classList.add("bg-green-600", "hover:bg-green-700");
