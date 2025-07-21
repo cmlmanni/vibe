@@ -10,7 +10,8 @@ export const tutorialTasks = [
     estimatedTime: "8-10 minutes",
     steps: [
       {
-        instruction: "Study this complete square example. What does it do?",
+        instruction:
+          "Study this Python turtle graphics example that draws a square with sides of length 100.",
         code: `import turtle
 t = turtle.Turtle()
 t.forward(100)
@@ -26,7 +27,8 @@ t.right(90)`,
         type: "demonstration",
       },
       {
-        instruction: "Now practice on your own: Draw a triangle.",
+        instruction:
+          "Write Python code using turtle graphics to draw an equilateral triangle with sides of length 100.",
         code: "# Try drawing a triangle using turtle commands\n# Hint: A triangle has 3 sides and turns 120 degrees",
         hint: "A triangle has 3 sides. Each turn should be `120` degrees (`360° ÷ 3`).",
         tip: "Use `forward()` and `right()` commands like in the square example.",
@@ -46,7 +48,7 @@ t.right(90)`,
     steps: [
       {
         instruction:
-          "Use pen and paper to plan drawing a simple house (square base + triangle roof)",
+          "Sketch a plan on paper for drawing a simple house with a square base and triangle roof using turtle graphics",
         code: "# No coding yet - use physical paper and pen",
         hint: "Think about: What shapes do you need? In what order? What turtle commands?",
         tip: "Good planning makes coding much easier!",
@@ -71,7 +73,8 @@ t.right(90)`,
     paradigm: "procedural",
     steps: [
       {
-        instruction: "Create a function to draw squares",
+        instruction:
+          "Write a Python function draw_square(t, size) that uses turtle graphics to draw a square with sides of length 'size'",
         code: `import turtle
 
 def draw_square(t, size):
@@ -87,7 +90,8 @@ draw_square(t, 100)`,
         type: "function_creation",
       },
       {
-        instruction: "Now add a function to draw triangles",
+        instruction:
+          "Write a Python function draw_triangle(t, size) that uses turtle graphics to draw an equilateral triangle with sides of length 'size'",
         code: `
 def draw_triangle(t, size):
     # Write code to draw a triangle of given size
@@ -107,7 +111,8 @@ draw_triangle(t, 100)`,
         type: "function_creation",
       },
       {
-        instruction: "Create a complete house function using both functions",
+        instruction:
+          "Write a Python function draw_house(t, size) that uses your draw_square and draw_triangle functions to draw a house with a square base and triangle roof",
         code: `
 def draw_house(t, size):
     # Draw square base using draw_square function
@@ -130,7 +135,7 @@ draw_house(t, 80)`,
       },
       {
         instruction:
-          "Optional: Add a door or window function (if time permits)",
+          "Enhance your house by adding functions to draw a door and window using turtle graphics",
         code: `# Optional: Add door/window functions below
 def draw_door(t, size):
     # Optional: draw a simple door
@@ -163,7 +168,8 @@ def draw_window(t, size):
     paradigm: "object_oriented",
     steps: [
       {
-        instruction: "Start fresh with a House class definition",
+        instruction:
+          "Create a Python House class with an __init__ method that accepts size, x and y position parameters",
         code: `import turtle
 
 class House:
@@ -182,7 +188,8 @@ class House:
         resetCode: true, // Start fresh for new paradigm
       },
       {
-        instruction: "Add a method to draw the square base",
+        instruction:
+          "Add a draw_base method to the House class that draws a square at the house's position with the specified size",
         code: `
     def draw_base(self):
         # Move turtle to position and draw square base
@@ -200,7 +207,8 @@ class House:
         appendCode: true,
       },
       {
-        instruction: "Add a method to draw the triangle roof",
+        instruction:
+          "Add a draw_roof method to the House class that draws a triangle on top of the square base",
         code: `    def draw_roof(self):
         # Position turtle and draw triangle roof on top of base
         pass`,
@@ -212,7 +220,8 @@ class House:
         appendCode: true,
       },
       {
-        instruction: "Create a main draw method and test with multiple houses",
+        instruction:
+          "Add a draw method to the House class that calls draw_base and draw_roof, then create and draw 3 different house instances",
         code: `    def draw(self):
         # Draw the complete house (base + roof)
         self.draw_base()
@@ -239,7 +248,8 @@ house3.draw()`,
         appendCode: true,
       },
       {
-        instruction: "Optional: Add color or extra features (if time permits)",
+        instruction:
+          "Enhance your House class by adding color support and methods to draw doors and windows",
         code: `# Optional enhancements - add anywhere in your code:
 # - Add color parameter to __init__ and use in drawing
 # - Add door/window methods
