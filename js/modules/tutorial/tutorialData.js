@@ -28,7 +28,7 @@ t.right(90)`,
       },
       {
         instruction:
-          "Write Python code using turtle graphics to draw an equilateral triangle with sides of length 50.",
+          "Write Python code using turtle graphics to draw an equilateral triangle with sides of length 50. Please do you not use AI assistance for this task.",
         code: "# Try drawing a triangle using turtle commands\n# Hint: A triangle has 3 sides and turns 120 degrees",
         hint: "A triangle has 3 sides. Each turn should be `120` degrees (`360° ÷ 3`).",
         tip: "Use `forward()` and `right()` commands like in the square example.",
