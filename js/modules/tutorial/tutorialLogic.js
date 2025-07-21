@@ -214,7 +214,7 @@ export function createTutorialLogic(
       currentStepIndex,
       eventLogger
     );
-    setupToggleListeners();
+    setupToggleListeners(); // Make sure this is called
     console.log("Tutorial logic initialized");
   }
 

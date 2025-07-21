@@ -298,46 +298,50 @@ export function setupToggleListeners() {
     });
   }
 
-  // Tips toggle
-  document.getElementById("toggle-tips")?.addEventListener("click", () => {
-    const content = document.getElementById("tips-content");
-    const icon = document.getElementById("tips-icon");
+  // Tips toggle - FIXED with debug logging
+  const tipsToggle = document.getElementById("toggle-tips");
+  if (tipsToggle) {
+    console.log("✅ Tips toggle button found, setting up listener");
 
-    if (content.style.display === "none") {
-      content.style.display = "block";
-      icon.textContent = "▲";
-    } else {
-      content.style.display = "none";
-      icon.textContent = "▼";
-    }
-  });
+    tipsToggle.addEventListener("click", () => {
+      console.log("Tips toggle clicked!");
+      const content = document.getElementById("tips-content");
+      const icon = document.getElementById("tips-icon");
+
+      console.log("Current tips content display:", content.style.display);
+
+      if (content.style.display === "none") {
+        content.style.display = "block";
+        icon.textContent = "▲";
+        console.log("Tips expanded");
+      } else {
+        content.style.display = "none";
+        icon.textContent = "▼";
+        console.log("Tips collapsed");
+      }
+    });
+  } else {
+    console.warn("❌ Tips toggle button not found!");
+  }
 
   // All steps toggle
-  document.getElementById("toggle-all-steps")?.addEventListener("click", () => {
-    const content = document.getElementById("all-steps-content");
-    const icon = document.getElementById("steps-toggle-icon");
+  const stepsToggle = document.getElementById("toggle-all-steps");
+  if (stepsToggle) {
+    stepsToggle.addEventListener("click", () => {
+      const content = document.getElementById("all-steps-content");
+      const icon = document.getElementById("steps-toggle-icon");
 
-    if (content.style.display === "none") {
-      content.style.display = "block";
-      icon.textContent = "▲";
-    } else {
-      content.style.display = "none";
-      icon.textContent = "▼";
-    }
-  });
-
-  // Quick action buttons
-  document.getElementById("show-hint-btn")?.addEventListener("click", () => {
-    document.getElementById("tips-content").style.display = "block";
-    document.getElementById("tips-icon").textContent = "▲";
-  });
-
-  document
-    .getElementById("show-all-steps-btn")
-    ?.addEventListener("click", () => {
-      document.getElementById("all-steps-content").style.display = "block";
-      document.getElementById("steps-toggle-icon").textContent = "▲";
+      if (content.style.display === "none") {
+        content.style.display = "block";
+        icon.textContent = "▲";
+      } else {
+        content.style.display = "none";
+        icon.textContent = "▼";
+      }
     });
+  }
+
+  console.log("✅ Toggle listeners set up successfully");
 }
 
 // Main tutorial display update function

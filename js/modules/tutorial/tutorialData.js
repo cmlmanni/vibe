@@ -8,6 +8,7 @@ export const tutorialTasks = [
     aiAllowed: false,
     completed: false,
     estimatedTime: "8-10 minutes",
+    concepts: ["Turtle graphics", "Basic drawing commands", "Code refactoring"],
     steps: [
       {
         instruction:
@@ -22,8 +23,8 @@ t.forward(50)
 t.right(90)
 t.forward(50)
 t.right(90)`,
-        hint: "This shows the basic turtle commands. Notice how each side is drawn separately.",
-        tip: "Understanding this foundation will help you with all future tasks.",
+        hint: "This shows the basic turtle commands. Notice how each side is drawn separately - this repetitive code will later be refactored into a reusable function.",
+        tip: "Understanding this foundation will help you with all future tasks. When we later convert this repetitive code into a function, we'll be demonstrating abstraction and encapsulation of functionality - key programming principles.",
         type: "demonstration",
       },
       {
@@ -45,6 +46,7 @@ t.right(90)`,
     type: "planning",
     completed: false,
     estimatedTime: "5 minutes",
+    concepts: ["Planning", "Decomposition"],
     steps: [
       {
         instruction:
@@ -71,6 +73,12 @@ t.right(90)`,
     completed: false,
     estimatedTime: "15-20 minutes",
     paradigm: "procedural",
+    concepts: [
+      "Abstraction and encapsulation of functionality",
+      "Parameterization for code reuse",
+      "Single Responsibility Principle",
+      "State management in procedural programming",
+    ],
     steps: [
       {
         instruction:
@@ -84,8 +92,8 @@ def draw_square(t, size):
 # Test your function
 t = turtle.Turtle()
 draw_square(t, 50)`,
-        hint: "Functions let you reuse code. Use a for loop: `for i in range(4):`",
-        tip: "The function should take a turtle object and size as parameters.",
+        hint: "Functions let you reuse code. Use a for loop: `for i in range(4):`. This demonstrates abstraction - hiding the details of how a square is drawn behind a simple function name.",
+        tip: "The function should take a turtle object and size as parameters. By using a `size` parameter instead of a fixed value, you enable parameterization - allowing the function to be reused for squares of different sizes. This is a key advantage of abstraction and encapsulation of functionality.",
         requirements: ["Function definition", "Parameters", "Square drawing"],
         type: "function_creation",
       },
@@ -102,7 +110,7 @@ draw_triangle(t, 50)`,
         preserveCode: true,
         appendCode: true,
         hint: "Triangles have 3 sides and use 120-degree turns.",
-        tip: "Add this function below your existing draw_square function.",
+        tip: "Add this function below your existing draw_square function. Notice how parameterization allows this function to create triangles of any size - demonstrating code reuse through parameters.",
         requirements: [
           "Triangle function",
           "120-degree turns",
@@ -124,8 +132,8 @@ t.clear()
 draw_house(t, 80)`,
         preserveCode: true,
         appendCode: true,
-        hint: "Call both `draw_square` and `draw_triangle` functions. Position the triangle on top.",
-        tip: "Use `t.penup()`, `t.forward()`, `t.pendown()` to move between shapes.",
+        hint: "Call both `draw_square` and `draw_triangle` functions. Position the triangle on top. This follows the Single Responsibility Principle - each function has one clear job.",
+        tip: "Use `t.penup()`, `t.forward()`, `t.pendown()` to move between shapes. Notice how the draw_house function uses other functions rather than containing all the drawing code - this demonstrates the Single Responsibility Principle, where each function handles one specific task.",
         requirements: [
           "Uses both functions",
           "Proper positioning",
@@ -148,7 +156,7 @@ def draw_window(t, size):
 # Optional: Modify your draw_house function to include door/window
 # draw_house(t, 50, include_door=True)`,
         hint: "This is optional. A door could be a small rectangle, a window could be a small square.",
-        tip: "Only do this if you've completed the basic house and have extra time.",
+        tip: "Only do this if you've completed the basic house and have extra time. In procedural programming, state (like the turtle's position and heading) is maintained in the turtle object passed as a parameter between function calls.",
         requirements: ["Optional extension", "Simple shapes"],
         type: "optional_extension",
         optional: true,
@@ -166,6 +174,12 @@ def draw_window(t, size):
     completed: false,
     estimatedTime: "15-20 minutes",
     paradigm: "object_oriented",
+    concepts: [
+      "Instance variables for state preservation",
+      "Object encapsulation",
+      "Self reference in instance methods",
+      "Template Method pattern for method organization",
+    ],
     steps: [
       {
         instruction:
@@ -180,12 +194,12 @@ class House:
         self.turtle = turtle.Turtle()
         
     # Add methods below`,
-        hint: "Classes bundle data (size, position) with methods (actions).",
-        tip: "The `__init__` method runs when you create a new House object.",
+        hint: "Classes bundle data (size, position) with methods (actions). The `__init__` method is called when creating new objects.",
+        tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (self.size, self.x, self.y), we preserve these values for later use by the object's methods - this is the primary purpose of instance variables in object-oriented programming.",
         requirements: ["Class definition", "Constructor", "Instance variables"],
         type: "class_definition",
         preserveCode: true,
-        resetCode: true, // Start fresh for new paradigm
+        resetCode: true,
       },
       {
         instruction:
@@ -196,7 +210,7 @@ class House:
         # Use self.size, self.x, self.y
         pass`,
         hint: "Use `self.turtle.goto(self.x, self.y)` to position, then draw the square.",
-        tip: "Add this method inside your House class.",
+        tip: "Add this method inside your House class. Notice how the draw_base method uses self.turtle instead of receiving a turtle as a parameter like the procedural draw_square function did. This is because the method can access the turtle object that belongs specifically to this House instance through object encapsulation.",
         requirements: [
           "Method definition",
           "Uses self attributes",
@@ -237,7 +251,7 @@ house2.draw()
 house3 = House(50, 150, 0)
 house3.draw()`,
         hint: "The draw method coordinates drawing the entire house.",
-        tip: "Add the draw method, then create multiple house instances to test.",
+        tip: "Add the draw method, then create multiple house instances to test. The draw() method calling more specialized methods (draw_base and draw_roof) demonstrates the Template Method pattern - a software design pattern where a higher-level method defines the skeleton of an operation and delegates specific steps to other methods.",
         requirements: [
           "Complete draw method",
           "At least 3 houses",
@@ -279,5 +293,6 @@ export function getTaskMetadata(task) {
     estimatedTime: task.estimatedTime,
     requirements: task.steps.flatMap((step) => step.requirements || []),
     hasOptionalSteps: task.steps.some((step) => step.optional),
+    concepts: task.concepts || [], // Add concepts to metadata
   };
 }
