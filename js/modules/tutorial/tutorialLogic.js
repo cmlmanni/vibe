@@ -55,17 +55,13 @@ export function createTutorialLogic(eventLogger) {
         console.log("New code:", newCode);
 
         if (window.editor) {
-          // Just use setValue with the combined code
           window.editor.setValue(newCode);
           window.editor.clearHistory();
           window.editor.refresh();
-
-          // Scroll to show the new content
           window.editor.scrollTo(null, window.editor.getScrollInfo().height);
         }
       }
     }
-    // If not preserveCode, the editor already has the right content from updateTutorialDisplay
 
     eventLogger.logEvent("step_loaded", {
       taskIndex: currentTaskIndex,
@@ -81,7 +77,7 @@ export function createTutorialLogic(eventLogger) {
   function loadTaskAndStep(taskIdx, stepIdx) {
     if (taskIdx < 0 || taskIdx >= tutorialTasks.length) return;
 
-    const oldTaskIndex = currentTaskIndex; // Store the old index BEFORE changing it
+    const oldTaskIndex = currentTaskIndex;
     const oldTask = tutorialTasks[oldTaskIndex];
     const newTask = tutorialTasks[taskIdx];
 
@@ -103,45 +99,50 @@ export function createTutorialLogic(eventLogger) {
         to: newTask.aiAllowed,
       },
     });
-
-    // Auto-save when switching between major tasks (not just steps)
-    if (oldTaskIndex !== taskIdx) {
-      eventLogger.saveLogToFile();
-      console.log("Auto-saved progress after task transition");
-    }
   }
 
-  // Mark a task as completed
-  function markTaskCompleted(taskIndex) {
+  // Combined function: Mark complete, save log, and advance
+  function completeTaskAndContinue(taskIndex) {
     if (taskIndex >= 0 && taskIndex < tutorialTasks.length) {
+      // Mark task as completed
       tutorialTasks[taskIndex].completed = true;
-      updateTutorialDisplay(
-        tutorialTasks,
-        currentTaskIndex,
-        currentStepIndex,
-        eventLogger
-      );
+
+      // Log the completion
       eventLogger.logEvent("task_completed", {
         taskIndex,
         taskType: tutorialTasks[taskIndex].type,
         paradigm: tutorialTasks[taskIndex].paradigm,
       });
 
-      // Auto-save when tasks are completed
+      // Save progress log
       eventLogger.saveLogToFile();
       console.log("Auto-saved progress after task completion");
+
+      // Update display first
+      updateTutorialDisplay(
+        tutorialTasks,
+        currentTaskIndex,
+        currentStepIndex,
+        eventLogger
+      );
+
+      // Move to next task if available
+      if (taskIndex < tutorialTasks.length - 1) {
+        setTimeout(() => {
+          loadTaskAndStep(taskIndex + 1, 0);
+        }, 500);
+      } else {
+        // All tasks completed
+        eventLogger.logEvent("experiment_completed", {
+          totalTasks: tutorialTasks.length,
+          completedTasks: tutorialTasks.filter((t) => t.completed).length,
+        });
+        console.log("🎉 All tasks completed!");
+      }
     }
   }
 
-  // Navigation functions
-  function nextTask() {
-    loadTaskAndStep(currentTaskIndex + 1, 0);
-  }
-
-  function prevTask() {
-    loadTaskAndStep(currentTaskIndex - 1, 0);
-  }
-
+  // Step navigation functions
   function nextStep() {
     const task = tutorialTasks[currentTaskIndex];
     if (currentStepIndex < task.steps.length - 1) {
@@ -157,19 +158,14 @@ export function createTutorialLogic(eventLogger) {
 
   // Initialize the tutorial
   function initialize() {
-    // Make loadStep globally accessible for onclick handlers
-    window.loadStep = loadStep;
-
-    // Setup toggle listeners
-    setupToggleListeners();
-
-    // Initial display update
     updateTutorialDisplay(
       tutorialTasks,
       currentTaskIndex,
       currentStepIndex,
       eventLogger
     );
+    setupToggleListeners();
+    console.log("Tutorial logic initialized");
   }
 
   return {
@@ -185,13 +181,11 @@ export function createTutorialLogic(eventLogger) {
     // Navigation
     loadTaskAndStep,
     loadStep,
-    nextTask,
-    prevTask,
     nextStep,
     prevStep,
 
     // Task management
-    markTaskCompleted,
+    completeTaskAndContinue, // MAKE SURE THIS IS INCLUDED
     getTaskMetadata: (task) => getTaskMetadata(task),
 
     // Initialization

@@ -80,8 +80,12 @@
 }
 
 .expandable-sections {
-  overflow-y: auto;
-  max-height: calc(100vh - 400px); /* Adjust based on your layout */
+  overflow: hidden; /* Changed from overflow-y: auto */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* Remove the max-height constraint */
+  /* max-height: calc(100vh - 400px); */
 }
 
 /* Compact Tutorial Styles */
@@ -105,6 +109,19 @@
 .tutorial-footer {
   flex-shrink: 0;
   margin-top: auto;
+}
+
+/* Make steps overview use available space */
+.steps-overview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Important for flex child to shrink */
+}
+
+#all-steps-content {
+  /* Remove fixed max-height */
+  /* max-h-32 is removed from HTML classes */
+  min-height: 0; /* Allow shrinking */
 }
 
 /* Line clamp utility for descriptions */

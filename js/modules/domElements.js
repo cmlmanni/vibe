@@ -12,11 +12,12 @@ export function initializeDOMElements() {
     terminalOutput: document.getElementById("terminal"),
     taskTitle: document.getElementById("task-title"),
     stepText: document.getElementById("step-text"),
-    prevTaskBtn: document.getElementById("prev-task-btn"),
-    nextTaskBtn: document.getElementById("next-task-btn"),
     prevSubstepBtn: document.getElementById("prev-substep-btn"),
     nextSubstepBtn: document.getElementById("next-substep-btn"),
-    saveLogBtn: document.getElementById("save-log-btn"), // ✅ ADD THIS
+    saveLogBtn: document.getElementById("save-log-btn"),
+    completeAndContinueBtn: document.getElementById(
+      "complete-and-continue-btn"
+    ), // ADD THIS
   };
 
   // Debug log missing elements
@@ -25,9 +26,8 @@ export function initializeDOMElements() {
     .map(([key]) => key);
 
   if (missingElements.length > 0) {
-    console.warn("Missing DOM elements:", missingElements);
+    console.warn("⚠️ Missing DOM elements:", missingElements);
   }
 
-  console.log("DOM elements initialized");
   return elements;
 }

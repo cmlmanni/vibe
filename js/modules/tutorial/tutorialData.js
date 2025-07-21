@@ -11,16 +11,16 @@ export const tutorialTasks = [
     steps: [
       {
         instruction:
-          "Study this Python turtle graphics example that draws a square with sides of length 100.",
+          "Study this Python turtle graphics example that draws a square with sides of length 50.",
         code: `import turtle
 t = turtle.Turtle()
-t.forward(100)
+t.forward(50)
 t.right(90)
-t.forward(100)
+t.forward(50)
 t.right(90)
-t.forward(100)
+t.forward(50)
 t.right(90)
-t.forward(100)
+t.forward(50)
 t.right(90)`,
         hint: "This shows the basic turtle commands. Notice how each side is drawn separately.",
         tip: "Understanding this foundation will help you with all future tasks.",
@@ -28,7 +28,7 @@ t.right(90)`,
       },
       {
         instruction:
-          "Write Python code using turtle graphics to draw an equilateral triangle with sides of length 100.",
+          "Write Python code using turtle graphics to draw an equilateral triangle with sides of length 50.",
         code: "# Try drawing a triangle using turtle commands\n# Hint: A triangle has 3 sides and turns 120 degrees",
         hint: "A triangle has 3 sides. Each turn should be `120` degrees (`360° ÷ 3`).",
         tip: "Use `forward()` and `right()` commands like in the square example.",
@@ -83,7 +83,7 @@ def draw_square(t, size):
 
 # Test your function
 t = turtle.Turtle()
-draw_square(t, 100)`,
+draw_square(t, 50)`,
         hint: "Functions let you reuse code. Use a for loop: `for i in range(4):`",
         tip: "The function should take a turtle object and size as parameters.",
         requirements: ["Function definition", "Parameters", "Square drawing"],
@@ -98,7 +98,7 @@ def draw_triangle(t, size):
     pass
 
 # Test your triangle function  
-draw_triangle(t, 100)`,
+draw_triangle(t, 50)`,
         preserveCode: true,
         appendCode: true,
         hint: "Triangles have 3 sides and use 120-degree turns.",
@@ -146,7 +146,7 @@ def draw_window(t, size):
     pass
 
 # Optional: Modify your draw_house function to include door/window
-# draw_house(t, 100, include_door=True)`,
+# draw_house(t, 50, include_door=True)`,
         hint: "This is optional. A door could be a small rectangle, a window could be a small square.",
         tip: "Only do this if you've completed the basic house and have extra time.",
         requirements: ["Optional extension", "Simple shapes"],
@@ -234,7 +234,7 @@ house1.draw()
 house2 = House(80, 0, 0)  
 house2.draw()
 
-house3 = House(100, 150, 0)
+house3 = House(50, 150, 0)
 house3.draw()`,
         hint: "The draw method coordinates drawing the entire house.",
         tip: "Add the draw method, then create multiple house instances to test.",

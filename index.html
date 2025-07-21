@@ -217,15 +217,15 @@
           <div class="flex gap-2">
             <button
               id="prev-substep-btn"
-              class="flex-1 px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              ← Prev
+              ← Prev Step
             </button>
             <button
               id="next-substep-btn"
-              class="flex-1 px-2 py-1 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Next →
+              Next Step →
             </button>
           </div>
         </div>
@@ -273,18 +273,18 @@
           </div>
 
           <!-- All Steps Overview (Collapsible) -->
-          <div class="steps-overview mb-2">
+          <div class="steps-overview mb-2 flex-1 flex flex-col">
             <button
               id="toggle-all-steps"
-              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between"
+              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between flex-shrink-0"
             >
               <span>📋 All Steps</span>
               <span id="steps-toggle-icon">▼</span>
             </button>
             <div
               id="all-steps-content"
-              class="mt-1 space-y-1 max-h-32 overflow-y-auto"
-              style="display: none"
+              class="mt-1 space-y-1 overflow-y-auto flex-1"
+              style="display: block"
             >
               <!-- Steps populated by JavaScript -->
             </div>
@@ -295,32 +295,27 @@
         <div
           class="tutorial-footer pt-3 border-t border-[var(--border-color)] mt-auto"
         >
-          <div class="flex gap-2 mb-2">
+          <!-- <div class="flex gap-2 mb-2">
             <button
-              id="prev-task-btn"
+              id="prev-substep-btn"
               class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              ← Prev Task
+              ← Prev Step
             </button>
             <button
-              id="next-task-btn"
+              id="next-substep-btn"
               class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
             >
-              Next Task →
+              Next Step →
             </button>
-          </div>
+          </div> -->
+          <!-- REMOVE prev-task-btn and next-task-btn -->
+          <!-- COMBINE the buttons into one -->
           <button
-            id="mark-complete-btn"
+            id="complete-and-continue-btn"
             class="w-full px-3 py-2 bg-green-600 text-white font-semibold rounded text-xs hover:bg-green-700 disabled:opacity-50 mb-2"
           >
-            Mark Task Complete
-          </button>
-          <!-- ADD THIS BUTTON -->
-          <button
-            id="save-log-btn"
-            class="w-full px-3 py-2 bg-purple-600 text-white font-semibold rounded text-xs hover:bg-purple-700"
-          >
-            Save Progress Log
+            ✅ Mark Task as Complete & Continue
           </button>
         </div>
       </div>

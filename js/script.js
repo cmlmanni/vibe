@@ -91,8 +91,6 @@ function setupEventListeners(
   domElements.resetBtn?.addEventListener("click", skulptRunner.resetAll);
 
   // Navigation buttons
-  domElements.prevTaskBtn?.addEventListener("click", tutorial.prevTask);
-  domElements.nextTaskBtn?.addEventListener("click", tutorial.nextTask);
   domElements.prevSubstepBtn?.addEventListener("click", tutorial.prevStep);
   domElements.nextSubstepBtn?.addEventListener("click", tutorial.nextStep);
 
@@ -101,4 +99,10 @@ function setupEventListeners(
 
   // Save log
   domElements.saveLogBtn?.addEventListener("click", eventLogger.saveLogToFile);
+
+  // FIXED: Use the DOM element from domElements
+  domElements.completeAndContinueBtn?.addEventListener("click", () => {
+    console.log("Complete and continue button clicked!");
+    tutorial.completeTaskAndContinue(tutorial.currentTaskIndex);
+  });
 }

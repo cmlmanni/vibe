@@ -62,15 +62,17 @@ export function initializeEventLogging() {
   // Log initialization
   logEvent("system_initialized", { module: "eventLogging" });
 
-  // Start auto-save when logging is initialized
-  startAutoSave(3); // Save every 3 minutes
+  // DISABLED: Start auto-save when logging is initialized
+  // startAutoSave(3); // Save every 3 minutes
 
-  // Auto-save on page unload
+  // DISABLED: Auto-save on page unload
+  /*
   window.addEventListener("beforeunload", () => {
     if (eventLog.length > 0) {
       saveLogToFile();
     }
   });
+  */
 
   return {
     logEvent,

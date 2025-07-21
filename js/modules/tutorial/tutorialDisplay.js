@@ -37,7 +37,9 @@ export function updateCodeEditor(step, task) {
         window.editor.getWrapperElement().classList.add("demonstration-mode");
       } else {
         window.editor.setOption("readOnly", false);
-        window.editor.getWrapperElement().classList.remove("demonstration-mode");
+        window.editor
+          .getWrapperElement()
+          .classList.remove("demonstration-mode");
       }
     } else if (step.type === "solo_practice" && step.aiBlocked) {
       const templateCode = step.code.includes("# Try drawing")
@@ -68,9 +70,16 @@ export function updateCodeEditor(step, task) {
 }
 
 // Update progress display
-export function updateProgressDisplay(tutorialTasks, currentTaskIndex, currentStepIndex) {
+export function updateProgressDisplay(
+  tutorialTasks,
+  currentTaskIndex,
+  currentStepIndex
+) {
   const task = tutorialTasks[currentTaskIndex];
-  const totalSteps = tutorialTasks.reduce((sum, task) => sum + task.steps.length, 0);
+  const totalSteps = tutorialTasks.reduce(
+    (sum, task) => sum + task.steps.length,
+    0
+  );
   const completedSteps =
     tutorialTasks
       .slice(0, currentTaskIndex)
@@ -98,15 +107,20 @@ export function updateTipsDisplay(step, task) {
   // Add paradigm-specific tips
   if (task.paradigm) {
     const paradigmTips = {
-      procedural: "Focus on step-by-step commands. Each line does one specific action.",
-      functional: "Think about reusable pieces. Functions let you use the same code multiple times.",
-      object_oriented: "Bundle data and actions together. Objects have properties and can do things.",
+      procedural:
+        "Focus on step-by-step commands. Each line does one specific action.",
+      functional:
+        "Think about reusable pieces. Functions let you use the same code multiple times.",
+      object_oriented:
+        "Bundle data and actions together. Objects have properties and can do things.",
     };
 
     if (paradigmTips[task.paradigm]) {
       tipsHTML += `
         <div class="tip-item paradigm-tip">
-          <strong>${task.paradigm.replace("_", "-").toUpperCase()} Approach:</strong> ${formatTextWithCode(
+          <strong>${task.paradigm
+            .replace("_", "-")
+            .toUpperCase()} Approach:</strong> ${formatTextWithCode(
         paradigmTips[task.paradigm]
       )}
         </div>
@@ -120,7 +134,9 @@ export function updateTipsDisplay(step, task) {
       <div class="tip-item requirements">
         <strong>Requirements:</strong>
         <ul class="text-xs mt-1">
-          ${step.requirements.map((req) => `<li>• ${formatTextWithCode(req)}</li>`).join("")}
+          ${step.requirements
+            .map((req) => `<li>• ${formatTextWithCode(req)}</li>`)
+            .join("")}
         </ul>
       </div>
     `;
@@ -156,7 +172,12 @@ export function updateStepsOverview(task, currentStepIndex) {
   const stepsContainer = document.getElementById("all-steps-content");
   const stepsHTML = task.steps
     .map((step, index) => {
-      const status = index < currentStepIndex ? "✅" : index === currentStepIndex ? "▶" : "○";
+      const status =
+        index < currentStepIndex
+          ? "✅"
+          : index === currentStepIndex
+          ? "▶"
+          : "○";
       const statusClass =
         index < currentStepIndex
           ? "text-green-400"
@@ -166,7 +187,9 @@ export function updateStepsOverview(task, currentStepIndex) {
 
       return `
         <div class="step-overview-item p-2 rounded text-xs cursor-pointer hover:bg-gray-700 ${
-          index === currentStepIndex ? "bg-blue-900 bg-opacity-30" : "bg-gray-800"
+          index === currentStepIndex
+            ? "bg-blue-900 bg-opacity-30"
+            : "bg-gray-800"
         } step-type-${step.type}" 
              onclick="loadStep(${index})">
           <span class="mr-2 ${statusClass}">${status}</span>
@@ -181,22 +204,52 @@ export function updateStepsOverview(task, currentStepIndex) {
 }
 
 // Update navigation buttons
-export function updateNavigationButtons(task, currentTaskIndex, currentStepIndex, tutorialTasks) {
+export function updateNavigationButtons(
+  task,
+  currentTaskIndex,
+  currentStepIndex,
+  tutorialTasks
+) {
   document.getElementById("prev-substep-btn").disabled = currentStepIndex === 0;
-  document.getElementById("next-substep-btn").disabled = currentStepIndex === task.steps.length - 1;
-  document.getElementById("prev-task-btn").disabled = currentTaskIndex === 0;
-  document.getElementById("next-task-btn").disabled = currentTaskIndex === tutorialTasks.length - 1;
+  document.getElementById("next-substep-btn").disabled =
+    currentStepIndex === task.steps.length - 1;
 
-  // Update task completion button
-  const completeBtn = document.getElementById("mark-complete-btn");
+  // Update combined completion button
+  const completeBtn = document.getElementById("complete-and-continue-btn");
   if (completeBtn) {
-    completeBtn.textContent = task.completed ? "✅ Task Completed" : "✅ Mark Task Complete";
-    completeBtn.disabled = task.completed;
+    if (task.completed) {
+      // Check if this is the final task
+      const isLastTask = currentTaskIndex === tutorialTasks.length - 1;
+
+      if (isLastTask) {
+        completeBtn.textContent =
+          "🎉 Good Job! You have finished the playful introduction to Python!";
+      } else {
+        completeBtn.textContent = "✅ Task Completed";
+      }
+
+      completeBtn.disabled = true;
+      completeBtn.classList.add("bg-gray-500");
+      completeBtn.classList.remove("bg-green-600", "hover:bg-green-700");
+    } else {
+      const isLastTask = currentTaskIndex === tutorialTasks.length - 1;
+      completeBtn.textContent = isLastTask
+        ? "✅ Complete Final Task"
+        : "✅ Complete Task & Continue";
+      completeBtn.disabled = false;
+      completeBtn.classList.remove("bg-gray-500");
+      completeBtn.classList.add("bg-green-600", "hover:bg-green-700");
+    }
   }
 }
 
 // Update AI availability
-export function updateAIAvailability(task, currentTaskIndex, currentStepIndex, eventLogger) {
+export function updateAIAvailability(
+  task,
+  currentTaskIndex,
+  currentStepIndex,
+  eventLogger
+) {
   const aiContainer = document.querySelector(".ai-assistant-section");
   if (aiContainer) {
     if (task.aiAllowed) {
@@ -279,14 +332,21 @@ export function setupToggleListeners() {
     document.getElementById("tips-icon").textContent = "▲";
   });
 
-  document.getElementById("show-all-steps-btn")?.addEventListener("click", () => {
-    document.getElementById("all-steps-content").style.display = "block";
-    document.getElementById("steps-toggle-icon").textContent = "▲";
-  });
+  document
+    .getElementById("show-all-steps-btn")
+    ?.addEventListener("click", () => {
+      document.getElementById("all-steps-content").style.display = "block";
+      document.getElementById("steps-toggle-icon").textContent = "▲";
+    });
 }
 
 // Main tutorial display update function
-export function updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentStepIndex, eventLogger) {
+export function updateTutorialDisplay(
+  tutorialTasks,
+  currentTaskIndex,
+  currentStepIndex,
+  eventLogger
+) {
   const task = tutorialTasks[currentTaskIndex];
   const step = task.steps[currentStepIndex];
 
@@ -301,7 +361,9 @@ export function updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentSt
   }
 
   // Update step info
-  document.getElementById("step-counter").textContent = `${currentStepIndex + 1} of ${task.steps.length}`;
+  document.getElementById("step-counter").textContent = `${
+    currentStepIndex + 1
+  } of ${task.steps.length}`;
   document.getElementById("step-text").textContent = step.instruction;
   document.getElementById("code-example").textContent = step.code;
 
@@ -311,7 +373,10 @@ export function updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentSt
   // Add step type indicator
   const stepContainer = document.querySelector(".current-step");
   if (stepContainer) {
-    stepContainer.className = stepContainer.className.replace(/step-type-\w+/g, "");
+    stepContainer.className = stepContainer.className.replace(
+      /step-type-\w+/g,
+      ""
+    );
     stepContainer.classList.add(`step-type-${step.type}`);
   }
 
@@ -319,6 +384,11 @@ export function updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentSt
   updateProgressDisplay(tutorialTasks, currentTaskIndex, currentStepIndex);
   updateTipsDisplay(step, task);
   updateStepsOverview(task, currentStepIndex);
-  updateNavigationButtons(task, currentTaskIndex, currentStepIndex, tutorialTasks);
+  updateNavigationButtons(
+    task,
+    currentTaskIndex,
+    currentStepIndex,
+    tutorialTasks
+  );
   updateAIAvailability(task, currentTaskIndex, currentStepIndex, eventLogger);
 }
