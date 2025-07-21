@@ -23,6 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const eventLogger = initializeEventLogging();
     const experimentConfig = initializeExperimentConfig(eventLogger);
 
+    // IMPORTANT: Make experimentConfig globally available
+    window.experimentConfig = experimentConfig;
+    console.log(
+      "🔄 Experiment config set to global scope:",
+      window.experimentConfig
+    );
+
     console.log("📋 Setting up experiment modal...");
 
     // Initialize experiment modal FIRST
