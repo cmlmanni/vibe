@@ -1,6 +1,9 @@
 /* filepath: /js/modules/tutorial/tutorialLogic.js */
 import { tutorialTasks, getTaskMetadata } from "./tutorialData.js";
-import { updateTutorialDisplay, setupToggleListeners } from "./tutorialDisplay.js";
+import {
+  updateTutorialDisplay,
+  setupToggleListeners,
+} from "./tutorialDisplay.js";
 
 export function createTutorialLogic(eventLogger) {
   let currentTaskIndex = 0;
@@ -11,10 +14,59 @@ export function createTutorialLogic(eventLogger) {
     const task = tutorialTasks[currentTaskIndex];
     if (stepIdx < 0 || stepIdx >= task.steps.length) return;
 
+    const step = task.steps[stepIdx];
     currentStepIndex = stepIdx;
-    updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentStepIndex, eventLogger);
 
-    // Enhanced logging
+    console.log(
+      "Loading step:",
+      stepIdx,
+      "preserveCode:",
+      step.preserveCode,
+      "appendCode:",
+      step.appendCode
+    );
+
+    // CAPTURE CURRENT CODE BEFORE ANYTHING ELSE
+    const currentCode =
+      step.preserveCode && stepIdx > 0 ? window.editor?.getValue() || "" : "";
+
+    console.log("Current code captured:", currentCode);
+
+    // UPDATE DISPLAY (this will overwrite editor with step.code)
+    updateTutorialDisplay(
+      tutorialTasks,
+      currentTaskIndex,
+      currentStepIndex,
+      eventLogger
+    );
+
+    // THEN handle code preservation logic using the captured code
+    if (step.preserveCode && stepIdx > 0) {
+      if (step.resetCode) {
+        console.log("Resetting code");
+        if (window.editor) {
+          window.editor.setValue(step.code);
+          window.editor.clearHistory();
+          window.editor.refresh();
+        }
+      } else if (step.appendCode) {
+        console.log("Appending code");
+        const newCode = currentCode + "\n" + step.code;
+        console.log("New code:", newCode);
+
+        if (window.editor) {
+          // Just use setValue with the combined code
+          window.editor.setValue(newCode);
+          window.editor.clearHistory();
+          window.editor.refresh();
+
+          // Scroll to show the new content
+          window.editor.scrollTo(null, window.editor.getScrollInfo().height);
+        }
+      }
+    }
+    // If not preserveCode, the editor already has the right content from updateTutorialDisplay
+
     eventLogger.logEvent("step_loaded", {
       taskIndex: currentTaskIndex,
       stepIndex: stepIdx,
@@ -29,16 +81,19 @@ export function createTutorialLogic(eventLogger) {
   function loadTaskAndStep(taskIdx, stepIdx) {
     if (taskIdx < 0 || taskIdx >= tutorialTasks.length) return;
 
-    const oldTask = tutorialTasks[currentTaskIndex];
+    const oldTaskIndex = currentTaskIndex; // Store the old index BEFORE changing it
+    const oldTask = tutorialTasks[oldTaskIndex];
     const newTask = tutorialTasks[taskIdx];
 
     currentTaskIndex = taskIdx;
     currentStepIndex = Math.max(0, Math.min(stepIdx, newTask.steps.length - 1));
-    updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentStepIndex, eventLogger);
+
+    // IMPORTANT: Load the step to update the code editor
+    loadStep(currentStepIndex);
 
     // Enhanced task transition logging
     eventLogger.logEvent("task_loaded", {
-      fromTaskIndex: currentTaskIndex !== taskIdx ? currentTaskIndex : null,
+      fromTaskIndex: oldTaskIndex !== taskIdx ? oldTaskIndex : null,
       toTaskIndex: taskIdx,
       fromParadigm: oldTask?.paradigm,
       toParadigm: newTask.paradigm,
@@ -48,18 +103,33 @@ export function createTutorialLogic(eventLogger) {
         to: newTask.aiAllowed,
       },
     });
+
+    // Auto-save when switching between major tasks (not just steps)
+    if (oldTaskIndex !== taskIdx) {
+      eventLogger.saveLogToFile();
+      console.log("Auto-saved progress after task transition");
+    }
   }
 
   // Mark a task as completed
   function markTaskCompleted(taskIndex) {
     if (taskIndex >= 0 && taskIndex < tutorialTasks.length) {
       tutorialTasks[taskIndex].completed = true;
-      updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentStepIndex, eventLogger);
+      updateTutorialDisplay(
+        tutorialTasks,
+        currentTaskIndex,
+        currentStepIndex,
+        eventLogger
+      );
       eventLogger.logEvent("task_completed", {
         taskIndex,
         taskType: tutorialTasks[taskIndex].type,
         paradigm: tutorialTasks[taskIndex].paradigm,
       });
+
+      // Auto-save when tasks are completed
+      eventLogger.saveLogToFile();
+      console.log("Auto-saved progress after task completion");
     }
   }
 
@@ -94,15 +164,24 @@ export function createTutorialLogic(eventLogger) {
     setupToggleListeners();
 
     // Initial display update
-    updateTutorialDisplay(tutorialTasks, currentTaskIndex, currentStepIndex, eventLogger);
+    updateTutorialDisplay(
+      tutorialTasks,
+      currentTaskIndex,
+      currentStepIndex,
+      eventLogger
+    );
   }
 
   return {
     // Data access
     tutorialTasks,
-    get currentTaskIndex() { return currentTaskIndex; },
-    get currentStepIndex() { return currentStepIndex; },
-    
+    get currentTaskIndex() {
+      return currentTaskIndex;
+    },
+    get currentStepIndex() {
+      return currentStepIndex;
+    },
+
     // Navigation
     loadTaskAndStep,
     loadStep,
@@ -110,11 +189,11 @@ export function createTutorialLogic(eventLogger) {
     prevTask,
     nextStep,
     prevStep,
-    
+
     // Task management
     markTaskCompleted,
     getTaskMetadata: (task) => getTaskMetadata(task),
-    
+
     // Initialization
     initialize,
   };

@@ -2,7 +2,8 @@
 export const tutorialTasks = [
   {
     title: "Foundation: Understanding Turtle Graphics",
-    description: "Learn the basics by seeing how turtle graphics works, then practice independently.",
+    description:
+      "Learn the basics by seeing how turtle graphics works, then practice independently.",
     type: "foundation",
     aiAllowed: false,
     completed: false,
@@ -37,13 +38,15 @@ t.right(90)`,
   },
   {
     title: "Planning: Design Your House",
-    description: "Think through your approach before coding by planning on paper.",
+    description:
+      "Think through your approach before coding by planning on paper.",
     type: "planning",
     completed: false,
     estimatedTime: "5 minutes",
     steps: [
       {
-        instruction: "Use pen and paper to plan drawing a simple house (square base + triangle roof)",
+        instruction:
+          "Use pen and paper to plan drawing a simple house (square base + triangle roof)",
         code: "# No coding yet - use physical paper and pen",
         hint: "Think about: What shapes do you need? In what order? What turtle commands?",
         tip: "Good planning makes coding much easier!",
@@ -58,188 +61,200 @@ t.right(90)`,
     ],
   },
   {
-    title: "Task 1: Draw a House",
-    description: "Code your house design using basic turtle commands with AI assistance.",
+    title: "Task 1: Draw a House with Functions",
+    description:
+      "Create a simple house using functions for procedural programming.",
     type: "procedural_programming",
     aiAllowed: true,
     completed: false,
-    estimatedTime: "12-15 minutes",
+    estimatedTime: "15-20 minutes",
     paradigm: "procedural",
     steps: [
       {
-        instruction: "Set up your turtle and start coding your house design",
+        instruction: "Create a function to draw squares",
         code: `import turtle
-t = turtle.Turtle()
-# Start coding your house here`,
-        hint: "Begin with importing turtle and creating a turtle object, just like the examples.",
-        tip: "Start with the square base, then add the triangle roof on top.",
-        type: "guided_coding",
-      },
-      {
-        instruction: "Draw the square base of your house",
-        code: "# Draw a square for the house base\n# Use basic forward() and right() commands",
-        hint: "A square needs 4 sides of equal length with 90-degree turns.",
-        tip: "You can use the pattern from the foundation example.",
-        requirements: ["Square base", "Proper positioning"],
-        type: "step_by_step",
-      },
-      {
-        instruction: "Add a triangle roof on top of the square",
-        code: "# Move to the top of the square\n# Draw a triangle roof",
-        hint: "You'll need to position the turtle at the top-left of the square, then draw the triangle.",
-        tip: "Remember: triangles use 120-degree turns.",
-        requirements: ["Triangle roof", "Positioned on square", "Connected properly"],
-        type: "step_by_step",
-      },
-      {
-        instruction: "Test and refine your house drawing",
-        code: "# Run your complete house code\n# Make adjustments if needed",
-        hint: "Your house should have a clear square base and triangle roof.",
-        tip: "If shapes don't connect properly, adjust the positioning commands.",
-        type: "testing_refinement",
-      },
-    ],
-  },
-  {
-    title: "Task 2: Create Reusable Shape Functions",
-    description: "Refactor your approach using functions for modularity and reuse.",
-    type: "functional_programming",
-    aiAllowed: true,
-    completed: false,
-    estimatedTime: "12-15 minutes",
-    paradigm: "functional",
-    steps: [
-      {
-        instruction: "Create a function to draw squares of any size",
-        code: `def draw_square(turtle_obj, size):
+
+def draw_square(t, size):
     # Write code to draw a square of given size
     pass
 
 # Test your function
 t = turtle.Turtle()
 draw_square(t, 100)`,
-        hint: "Functions let you reuse code. The function should take a turtle and size as parameters.",
-        tip: "Use a for loop inside the function to make it cleaner: `for i in range(4)`:",
-        requirements: ["Function definition", "Parameters", "Reusable code"],
+        hint: "Functions let you reuse code. Use a for loop: `for i in range(4):`",
+        tip: "The function should take a turtle object and size as parameters.",
+        requirements: ["Function definition", "Parameters", "Square drawing"],
         type: "function_creation",
       },
       {
-        instruction: "Create a function to draw triangles of any size",
-        code: `def draw_triangle(turtle_obj, size):
+        instruction: "Now add a function to draw triangles",
+        code: `
+def draw_triangle(t, size):
     # Write code to draw a triangle of given size
     pass
 
-# Test your function  
+# Test your triangle function  
 draw_triangle(t, 100)`,
-        hint: "Similar to `draw_square`, but triangles have 3 sides and 120-degree turns.",
-        tip: "You can use: `for i in range(3)`: to repeat the triangle drawing.",
-        requirements: ["Triangle function", "Proper angles", "Size parameter"],
+        preserveCode: true,
+        appendCode: true,
+        hint: "Triangles have 3 sides and use 120-degree turns.",
+        tip: "Add this function below your existing draw_square function.",
+        requirements: [
+          "Triangle function",
+          "120-degree turns",
+          "Size parameter",
+        ],
         type: "function_creation",
       },
       {
-        instruction: "Create a draw_house function that uses both shape functions",
-        code: `def draw_house(turtle_obj, size):
-    # Use your draw_square and draw_triangle functions
-    # Position the triangle on top of the square
+        instruction: "Create a complete house function using both functions",
+        code: `
+def draw_house(t, size):
+    # Draw square base using draw_square function
+    # Position turtle and draw triangle roof using draw_triangle function
     pass
 
-# Test drawing multiple houses
-draw_house(t, 80)
-# Move turtle and draw another house
-draw_house(t, 120)`,
-        hint: "Your `draw_house` function should call both `draw_square` and `draw_triangle`.",
-        tip: "You'll need to move the turtle between drawing the square and triangle.",
-        requirements: ["Combines both functions", "Proper positioning", "Multiple houses"],
+# Test your house function
+t.clear()
+draw_house(t, 80)`,
+        preserveCode: true,
+        appendCode: true,
+        hint: "Call both `draw_square` and `draw_triangle` functions. Position the triangle on top.",
+        tip: "Use `t.penup()`, `t.forward()`, `t.pendown()` to move between shapes.",
+        requirements: [
+          "Uses both functions",
+          "Proper positioning",
+          "Complete house",
+        ],
         type: "composition",
       },
       {
-        instruction: "Create a neighborhood with houses of different sizes",
-        code: `# Clear the screen and draw multiple houses
-t.clear()
-# Draw 3-4 houses of different sizes in different positions`,
-        hint: "Use your `draw_house` function multiple times with different sizes and positions.",
-        tip: "Use `t.penup()`, `t.goto(x, y)`, `t.pendown()` to move between house locations.",
-        requirements: ["Multiple houses", "Different sizes", "Good spacing"],
-        type: "creative_application",
+        instruction:
+          "Optional: Add a door or window function (if time permits)",
+        code: `# Optional: Add door/window functions below
+def draw_door(t, size):
+    # Optional: draw a simple door
+    pass
+
+def draw_window(t, size):
+    # Optional: draw a simple window
+    pass
+
+# Optional: Modify your draw_house function to include door/window
+# draw_house(t, 100, include_door=True)`,
+        hint: "This is optional. A door could be a small rectangle, a window could be a small square.",
+        tip: "Only do this if you've completed the basic house and have extra time.",
+        requirements: ["Optional extension", "Simple shapes"],
+        type: "optional_extension",
+        optional: true,
+        preserveCode: true,
+        appendCode: true,
       },
     ],
   },
   {
-    title: "Task 3: Build a House Class",
-    description: "Create a House class for maximum reusability and customization.",
+    title: "Task 2: Create a House Class",
+    description:
+      "Build reusable House objects using object-oriented programming.",
     type: "object_oriented_programming",
     aiAllowed: true,
     completed: false,
-    estimatedTime: "12-15 minutes",
+    estimatedTime: "15-20 minutes",
     paradigm: "object_oriented",
-    aiChoice: "participant_choice",
     steps: [
       {
-        instruction: "Define a House class with initialization",
-        code: `class House:
-    def __init__(self, size, color='black', x=0, y=0):
+        instruction: "Start fresh with a House class definition",
+        code: `import turtle
+
+class House:
+    def __init__(self, size, x=0, y=0):
         self.size = size
-        self.color = color
         self.x = x
         self.y = y
         self.turtle = turtle.Turtle()
         
     # Add methods below`,
-        hint: "Classes bundle data (size, color, position) with methods (actions).",
+        hint: "Classes bundle data (size, position) with methods (actions).",
         tip: "The `__init__` method runs when you create a new House object.",
         requirements: ["Class definition", "Constructor", "Instance variables"],
         type: "class_definition",
+        preserveCode: true,
+        resetCode: true, // Start fresh for new paradigm
       },
       {
-        instruction: "Add a draw_base method to your House class",
-        code: `    def draw_base(self):
-        # Move turtle to position and draw the square base
-        # Use self.size, self.color, self.x, self.y
+        instruction: "Add a method to draw the square base",
+        code: `
+    def draw_base(self):
+        # Move turtle to position and draw square base
+        # Use self.size, self.x, self.y
         pass`,
-        hint: "Methods in a class can access the object's data using `self.attribute_name`.",
-        tip: "Use `self.turtle.goto(self.x, self.y)` to position, then draw the square.",
-        requirements: ["Method definition", "Uses self attributes", "Draws square"],
+        hint: "Use `self.turtle.goto(self.x, self.y)` to position, then draw the square.",
+        tip: "Add this method inside your House class.",
+        requirements: [
+          "Method definition",
+          "Uses self attributes",
+          "Draws square",
+        ],
         type: "method_implementation",
+        preserveCode: true,
+        appendCode: true,
       },
       {
-        instruction: "Add a draw_roof method to your House class",
+        instruction: "Add a method to draw the triangle roof",
         code: `    def draw_roof(self):
-        # Position turtle and draw triangle roof
-        # Make sure it sits on top of the base
+        # Position turtle and draw triangle roof on top of base
         pass`,
-        hint: "The roof should be positioned at the top of the square base.",
-        tip: "Calculate the roof position based on `self.x`, `self.y`, and `self.size`.",
+        hint: "Calculate roof position based on `self.x`, `self.y`, and `self.size`.",
+        tip: "Add this method after your draw_base method.",
         requirements: ["Roof method", "Proper positioning", "Triangle shape"],
         type: "method_implementation",
+        preserveCode: true,
+        appendCode: true,
       },
       {
-        instruction: "Add a complete draw method that draws the whole house",
+        instruction: "Create a main draw method and test with multiple houses",
         code: `    def draw(self):
-        # Set the turtle color and draw the complete house
-        # Call both draw_base and draw_roof
-        pass
-        
-# Test your House class
-house1 = House(80, 'blue', -100, 0)
+        # Draw the complete house (base + roof)
+        self.draw_base()
+        self.draw_roof()
+
+# Create at least 3 different houses
+house1 = House(60, -150, 0)
 house1.draw()
 
-house2 = House(120, 'red', 100, 0)  
-house2.draw()`,
-        hint: "The draw method should coordinate drawing the entire house.",
-        tip: "Use `self.turtle.color(self.color)` to set the color before drawing.",
-        requirements: ["Complete draw method", "Uses color", "Calls other methods"],
+house2 = House(80, 0, 0)  
+house2.draw()
+
+house3 = House(100, 150, 0)
+house3.draw()`,
+        hint: "The draw method coordinates drawing the entire house.",
+        tip: "Add the draw method, then create multiple house instances to test.",
+        requirements: [
+          "Complete draw method",
+          "At least 3 houses",
+          "Different sizes/positions",
+        ],
         type: "method_coordination",
+        preserveCode: true,
+        appendCode: true,
       },
       {
-        instruction: "Create a custom neighborhood with styled houses",
-        code: `# Create multiple House objects with different properties
-# Try different sizes, colors, and positions
-# Add any extra features you want!`,
-        hint: "Now you can easily create many different houses with custom properties.",
-        tip: "Try adding features like doors, windows, or different roof styles!",
-        requirements: ["Multiple objects", "Different properties", "Creative additions"],
-        type: "creative_showcase",
-        bonus: "Add extra features like doors, windows, or different colors!",
+        instruction: "Optional: Add color or extra features (if time permits)",
+        code: `# Optional enhancements - add anywhere in your code:
+# - Add color parameter to __init__ and use in drawing
+# - Add door/window methods
+# - Try different house styles
+
+# Example:
+# house4 = House(90, 0, -100, color='blue')
+# house4.draw()`,
+        hint: "This is optional. Try adding a color parameter or simple door/window features.",
+        tip: "Modify your existing class or add new features as you see fit.",
+        requirements: ["Optional extension", "Creative additions"],
+        type: "optional_extension",
+        optional: true,
+        preserveCode: true,
+        appendCode: true,
       },
     ],
   },
@@ -251,8 +266,8 @@ export function getTaskMetadata(task) {
     type: task.type,
     paradigm: task.paradigm || "none",
     aiAllowed: task.aiAllowed,
-    aiChoice: task.aiChoice || "assigned",
     estimatedTime: task.estimatedTime,
     requirements: task.steps.flatMap((step) => step.requirements || []),
+    hasOptionalSteps: task.steps.some((step) => step.optional),
   };
 }

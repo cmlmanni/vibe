@@ -313,14 +313,14 @@
             id="mark-complete-btn"
             class="w-full px-3 py-2 bg-green-600 text-white font-semibold rounded text-xs hover:bg-green-700 disabled:opacity-50 mb-2"
           >
-            ✅ Mark Task Complete
+            Mark Task Complete
           </button>
           <!-- ADD THIS BUTTON -->
           <button
             id="save-log-btn"
             class="w-full px-3 py-2 bg-purple-600 text-white font-semibold rounded text-xs hover:bg-purple-700"
           >
-            💾 Save Progress Log
+            Save Progress Log
           </button>
         </div>
       </div>
@@ -385,18 +385,20 @@
         <!-- AI Assistant Section -->
         <div class="ai-assistant-section">
           <div class="mb-2">
-            <span
-              class="block text-xs font-semibold mb-1 text-gray-300 uppercase tracking-wider"
-              >🤖 AI ASSISTANT</span
-            >
-            <select
-              id="ai-mode-select"
-              class="ai-mode-select-compact"
-              title="Choose AI Assistant"
-            >
-              <option value="vibecoding">Assistant A</option>
-              <option value="reflective">Assistant B</option>
-            </select>
+            <div class="flex items-center justify-between">
+              <span
+                class="text-xs font-semibold text-gray-300 uppercase tracking-wider"
+                >AI ASSISTANT</span
+              >
+              <select
+                id="ai-mode-select"
+                class="ai-mode-select-compact"
+                title="Choose AI Assistant"
+              >
+                <option value="vibecoding">Assistant A</option>
+                <option value="reflective">Assistant B</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -414,7 +416,7 @@
           <input
             id="ai-prompt-input"
             type="text"
-            placeholder="💭 Ask for a suggestion..."
+            placeholder="Ask for a suggestion..."
             class="w-full bg-[#3c3c3c] border border-transparent rounded p-2 text-xs placeholder-gray-500"
           />
           <div class="flex gap-2 mt-2">
@@ -422,7 +424,7 @@
               id="get-ai-suggestion-btn"
               class="w-full px-4 py-1 bg-[var(--blue-accent)] text-white font-semibold rounded text-xs hover:bg-opacity-80"
             >
-              📤 Send
+              Send
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 /* filepath: /js/modules/eventLogging.js */
 export function initializeEventLogging() {
   const eventLog = [];
+  let autoSaveInterval = null;
 
   function logEvent(eventType, data = {}) {
     const timestamp = new Date().toISOString();
@@ -36,13 +37,47 @@ export function initializeEventLogging() {
     console.log("Event log cleared");
   }
 
+  // Auto-save functionality
+  function startAutoSave(intervalMinutes = 3) {
+    if (autoSaveInterval) clearInterval(autoSaveInterval);
+
+    autoSaveInterval = setInterval(() => {
+      if (eventLog.length > 0) {
+        saveLogToFile();
+        logEvent("auto_save_periodic", { eventCount: eventLog.length });
+      }
+    }, intervalMinutes * 60 * 1000);
+
+    console.log(`Auto-save started: every ${intervalMinutes} minutes`);
+  }
+
+  function stopAutoSave() {
+    if (autoSaveInterval) {
+      clearInterval(autoSaveInterval);
+      autoSaveInterval = null;
+      console.log("Auto-save stopped");
+    }
+  }
+
   // Log initialization
   logEvent("system_initialized", { module: "eventLogging" });
+
+  // Start auto-save when logging is initialized
+  startAutoSave(3); // Save every 3 minutes
+
+  // Auto-save on page unload
+  window.addEventListener("beforeunload", () => {
+    if (eventLog.length > 0) {
+      saveLogToFile();
+    }
+  });
 
   return {
     logEvent,
     saveLogToFile,
     getEventLog,
     clearLog,
+    startAutoSave,
+    stopAutoSave,
   };
 }
