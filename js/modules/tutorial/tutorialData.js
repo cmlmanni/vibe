@@ -199,10 +199,7 @@ def draw_door(t, size):
 def draw_window(t, size):
     # A window is a small square in the upper part of the house
     # Remember to position the turtle first
-    pass
-
-# Optional: Modify your draw_house function to include door/window
-# draw_house(t, 50, include_door=True)`,
+    pass`,
         hint: "This is optional. Use `t.penup()` to move without drawing, then `t.pendown()` to start drawing again. A door could be a small rectangle, a window could be a small square.",
         tip: "This introduces an important concept: moving the turtle to specific positions within your drawing. Use `t.penup()` before moving to a new location, then `t.pendown()` before drawing. You'll need to calculate where on the house base to position these features. Only do this if you've completed the basic house and have extra time.",
         learningNote:
@@ -352,10 +349,8 @@ house3.draw()`,
       },
       {
         instruction:
-          "Enhance your House class by adding methods to draw doors and windows, plus optional color support",
-        code: `# Optional enhancements - add methods to your House class:
-
-    def draw_door(self):
+          "Enhance your House class by adding methods to draw doors and windows, plus optional color support. These methods will be automatically added to your class.",
+        code: `    def draw_door(self):
         # Draw a door at the bottom center of the house base
         # Use self.turtle.penup() to move, then self.turtle.pendown() to draw
         pass
@@ -365,24 +360,28 @@ house3.draw()`,
         # Remember: penup() to position, pendown() to draw
         pass
 
-# Example usage:
-# house4 = House(90, 0, -100)
-# house4.draw()
-# house4.draw_door()
-# house4.draw_window()`,
-        hint: "This is optional. Use `self.turtle.penup()` and `self.turtle.pendown()` to move the turtle to specific positions within the house without drawing connecting lines.",
+        
+# Optional: Try adding color to your houses
+# You can add a color parameter to __init__ and use self.turtle.color()
+
+# Test your new methods:
+house4 = House(90, 0, -100)
+house4.draw()
+house4.draw_door()
+house4.draw_window()`,
+        hint: "This is optional. The methods will be automatically added inside your House class. Use `self.turtle.penup()` and `self.turtle.pendown()` to move to specific positions without drawing connecting lines.",
         tip: "These methods introduce precise positioning within objects. Calculate door/window positions relative to `self.x`, `self.y`, and `self.size`. The door might be at `(self.x + self.size//3, self.y)` and the window at `(self.x + self.size//4, self.y + self.size//2)`. This demonstrates how object methods can work together - first draw the house, then add details.",
         learningNote:
           "This shows how objects can have multiple methods that work on the same data. Each method (draw, draw_door, draw_window) operates on the same house instance, using its position and size properties.",
         conceptConnection:
           "Object methods can be called independently or in sequence. Unlike the procedural approach where you'd need to pass coordinates to each function, these methods automatically know where 'their' house is located.",
         aiGuidance:
-          "If you need help with coordinate calculations, ask: 'How do I calculate the position for a door at the bottom center of a house object in turtle graphics?'",
+          "If you need help with coordinate calculations, ask: 'How do I calculate the position for a door at the bottom center of a house object in turtle graphics?' or 'How can I add color support to my House class?'",
         requirements: ["Optional extension", "Method addition", "Pen control"],
         type: "optional_extension",
         optional: true,
         preserveCode: true,
-        appendCode: true,
+        insertIntoClass: true, // Use smart insertion instead of append
       },
     ],
   },
