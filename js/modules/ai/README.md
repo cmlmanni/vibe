@@ -24,9 +24,7 @@ js/modules/ai/
 │   └── aiAssistant.js          # Enhanced base class
 ├── assistants/
 │   ├── vibecodingAssistant.js  # Updated for modular system
-│   ├── reflectiveAssistant.js  # Updated for modular system
-│   ├── debuggingAssistant.js   # New debugging specialist
-│   └── creativeAssistant.js    # New creative coding assistant
+│   └── reflectiveAssistant.js  # Updated for modular system
 ├── examples/
 │   └── customAssistantExample.js # Examples of custom assistants
 ├── modularIndex.js             # New modular system entry point
