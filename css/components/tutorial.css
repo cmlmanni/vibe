@@ -4,7 +4,8 @@
   min-width: 350px;
   max-width: 500px;
   height: 100vh;
-  overflow-y: auto; /* Make the whole sidebar scrollable */
+  display: flex;
+  flex-direction: column;
   padding: 1rem;
 }
 
@@ -83,8 +84,10 @@
 }
 
 .expandable-sections {
-  /* Remove flex properties that restrict natural flow */
-  display: block;
+  /* This section should scroll when content overflows */
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   margin-bottom: 1rem;
 }
 
@@ -107,8 +110,9 @@
 }
 
 .tutorial-footer {
-  /* Remove flex properties so it flows naturally at the bottom */
-  margin-top: 1rem;
+  /* Keep button always visible at bottom */
+  flex-shrink: 0;
+  margin-top: 0;
 }
 
 /* Make steps overview use available space */
@@ -118,8 +122,8 @@
 }
 
 #all-steps-content {
-  /* Remove fixed max-height and flex properties */
   /* Let content flow naturally */
+  display: block;
 }
 
 /* Expandable/Collapsible functionality */
