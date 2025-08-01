@@ -235,11 +235,25 @@ export class ModularAISystem {
       this.handleGetSuggestion();
     });
 
-    // Prompt input enter key
+    // Prompt input enter key and auto-resize
     this.domElements.aiPromptInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        this.handleGetSuggestion();
+        if (e.shiftKey) {
+          // Shift+Enter: Add line break - let default behavior handle it
+          // Auto-resize will handle the height adjustment
+        } else {
+          // Regular Enter: Send message
+          e.preventDefault();
+          this.handleGetSuggestion();
+        }
       }
+    });
+
+    // Auto-resize textarea
+    this.domElements.aiPromptInput?.addEventListener("input", (e) => {
+      const textarea = e.target;
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
     });
 
     console.log("🎮 Event listeners set up");

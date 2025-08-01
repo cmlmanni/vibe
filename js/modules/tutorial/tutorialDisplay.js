@@ -158,7 +158,7 @@ export function updateTipsDisplay(step, task) {
     tipsHTML += `
       <div class="tip-item no-ai">
         <strong>Independent Work:</strong> ${formatTextWithCode(
-          "Try this on your own without AI assistance."
+          "Proceed to the next step, and try this on your own without AI assistance."
         )}
       </div>
     `;

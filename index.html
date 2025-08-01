@@ -399,12 +399,13 @@
         <div
           class="chat-input-area border-t border-[var(--border-color)] pt-2 mt-2"
         >
-          <input
+          <textarea
             id="ai-prompt-input"
-            type="text"
+            rows="1"
             placeholder="Ask for a suggestion..."
-            class="w-full bg-[#3c3c3c] border border-transparent rounded p-2 text-xs placeholder-gray-500"
-          />
+            class="w-full bg-[#3c3c3c] border border-transparent rounded p-2 text-xs placeholder-gray-500 resize-none overflow-hidden"
+            style="min-height: 32px; max-height: 120px"
+          ></textarea>
           <div class="flex gap-2 mt-2">
             <button
               id="get-ai-suggestion-btn"

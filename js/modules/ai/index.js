@@ -64,7 +64,23 @@ export function initializeAIAssistants(
     );
 
     domElements.aiPromptInput?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleGetSuggestion();
+      if (e.key === "Enter") {
+        if (e.shiftKey) {
+          // Shift+Enter: Add line break - let default behavior handle it
+          // Auto-resize will handle the height adjustment
+        } else {
+          // Regular Enter: Send message
+          e.preventDefault();
+          handleGetSuggestion();
+        }
+      }
+    });
+
+    // Auto-resize textarea
+    domElements.aiPromptInput?.addEventListener("input", (e) => {
+      const textarea = e.target;
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
     });
 
     domElements.aiModeSelect?.addEventListener("change", (e) => {

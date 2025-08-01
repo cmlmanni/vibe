@@ -15,6 +15,70 @@ function debugTaskStructure() {
   console.log("=============================");
 }
 
+// Smart code insertion function for adding methods to classes
+function insertMethodsIntoClass(currentCode, methodsToAdd) {
+  const lines = currentCode.split("\n");
+  let insertPosition = -1;
+  let classIndent = "";
+
+  // Find the last method in a class or the end of a class
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+
+    // Look for class methods (properly indented def statements)
+    if (line.match(/^\s{4}def\s+\w+\(/) || line.match(/^\t+def\s+\w+\(/)) {
+      const methodIndent = line.match(/^(\s*)/)[1];
+
+      // Find the end of this method (next method, class end, or file end)
+      for (let j = i + 1; j < lines.length; j++) {
+        const nextLine = lines[j];
+        const nextIndent = nextLine.match(/^(\s*)/)[1];
+
+        // If we hit a line with same or less indentation (next method, class end, etc.)
+        // or if it's a comment/blank line followed by less indentation
+        if (
+          nextLine.trim() === "" ||
+          nextIndent.length <= methodIndent.length ||
+          nextLine.match(/^class\s+/) ||
+          nextLine.match(/^[a-zA-Z]/) ||
+          j === lines.length - 1
+        ) {
+          // Skip any trailing blank lines within the method
+          while (j > i && lines[j - 1].trim() === "") {
+            j--;
+          }
+
+          insertPosition = j;
+          classIndent = methodIndent;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  if (insertPosition !== -1) {
+    // Prepare the methods with proper indentation
+    const methodLines = methodsToAdd.split("\n");
+    const indentedMethods = methodLines.map((line) => {
+      if (line.trim() === "") return line; // Keep blank lines as is
+      if (line.match(/^\s*#/)) return classIndent + line.trim(); // Handle comments
+      if (line.match(/^\s*def\s+/)) return classIndent + line.trim(); // Handle method definitions
+      if (line.match(/^\s*pass\s*$/)) return classIndent + "    " + line.trim(); // Handle pass statements
+      if (line.match(/^\s*[a-zA-Z]/)) return line; // Keep top-level code as is
+      return classIndent + "    " + line.trim(); // Indent method body
+    });
+
+    // Insert with a blank line before the new methods
+    lines.splice(insertPosition, 0, "", ...indentedMethods);
+    return lines.join("\n");
+  }
+
+  // Fallback: append at the end
+  console.warn("Could not find class to insert methods into, appending at end");
+  return currentCode + "\n" + methodsToAdd;
+}
+
 export function createTutorialLogic(
   eventLogger,
   surveyModal,
@@ -65,6 +129,17 @@ export function createTutorialLogic(
           window.editor.setValue(step.code);
           window.editor.clearHistory();
           window.editor.refresh();
+        }
+      } else if (step.insertIntoClass) {
+        console.log("Inserting methods into class");
+        const newCode = insertMethodsIntoClass(currentCode, step.code);
+        console.log("New code with inserted methods:", newCode);
+
+        if (window.editor) {
+          window.editor.setValue(newCode);
+          window.editor.clearHistory();
+          window.editor.refresh();
+          window.editor.scrollTo(null, window.editor.getScrollInfo().height);
         }
       } else if (step.appendCode) {
         console.log("Appending code");
