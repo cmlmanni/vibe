@@ -278,6 +278,18 @@ export function updateAIAvailability(
 
 // Setup toggle listeners for UI components
 export function setupToggleListeners() {
+  console.log("🔧 Module: Setting up toggle listeners...");
+
+  // Use the global toggle setup function if available (more reliable)
+  if (typeof window.setupExpandableToggles === "function") {
+    console.log("Using global toggle setup function");
+    window.setupExpandableToggles();
+    return;
+  }
+
+  // Fallback to module-based setup
+  console.log("Using module-based toggle setup");
+
   // Code hint toggle
   const codeHintToggle = document.getElementById("toggle-code-hint");
   if (codeHintToggle) {
@@ -298,50 +310,7 @@ export function setupToggleListeners() {
     });
   }
 
-  // Tips toggle - FIXED with debug logging
-  const tipsToggle = document.getElementById("toggle-tips");
-  if (tipsToggle) {
-    console.log("✅ Tips toggle button found, setting up listener");
-
-    tipsToggle.addEventListener("click", () => {
-      console.log("Tips toggle clicked!");
-      const content = document.getElementById("tips-content");
-      const icon = document.getElementById("tips-icon");
-
-      console.log("Current tips content display:", content.style.display);
-
-      if (content.style.display === "none") {
-        content.style.display = "block";
-        icon.textContent = "▲";
-        console.log("Tips expanded");
-      } else {
-        content.style.display = "none";
-        icon.textContent = "▼";
-        console.log("Tips collapsed");
-      }
-    });
-  } else {
-    console.warn("❌ Tips toggle button not found!");
-  }
-
-  // All steps toggle
-  const stepsToggle = document.getElementById("toggle-all-steps");
-  if (stepsToggle) {
-    stepsToggle.addEventListener("click", () => {
-      const content = document.getElementById("all-steps-content");
-      const icon = document.getElementById("steps-toggle-icon");
-
-      if (content.style.display === "none") {
-        content.style.display = "block";
-        icon.textContent = "▲";
-      } else {
-        content.style.display = "none";
-        icon.textContent = "▼";
-      }
-    });
-  }
-
-  console.log("✅ Toggle listeners set up successfully");
+  console.log("✅ Module toggle listeners set up");
 }
 
 // Main tutorial display update function
@@ -395,4 +364,7 @@ export function updateTutorialDisplay(
     tutorialTasks
   );
   updateAIAvailability(task, currentTaskIndex, currentStepIndex, eventLogger);
+
+  // Re-setup toggle listeners after content update
+  setupToggleListeners();
 }

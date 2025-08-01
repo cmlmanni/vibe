@@ -147,7 +147,7 @@
       <!-- Left Sidebar (Tutorial) - Compact Version -->
       <div
         id="left-sidebar"
-        class="left-sidebar bg-[var(--sidebar-bg)] w-80 p-4 flex flex-col flex-shrink-0 border-r border-[var(--border-color)]"
+        class="left-sidebar bg-[var(--sidebar-bg)] w-80 flex-shrink-0 border-r border-[var(--border-color)]"
       >
         <!-- Compact Header -->
         <div class="tutorial-header mb-3">
@@ -251,7 +251,7 @@
         </div> -->
 
         <!-- Collapsible Sections -->
-        <div class="expandable-sections flex-grow">
+        <div class="expandable-sections">
           <!-- Tips Section (Collapsible) -->
           <div class="tips-section mb-2">
             <button
@@ -273,17 +273,17 @@
           </div>
 
           <!-- All Steps Overview (Collapsible) -->
-          <div class="steps-overview mb-2 flex-1 flex flex-col">
+          <div class="steps-overview mb-2">
             <button
               id="toggle-all-steps"
-              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between flex-shrink-0"
+              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between"
             >
               <span>📋 All Steps</span>
               <span id="steps-toggle-icon">▼</span>
             </button>
             <div
               id="all-steps-content"
-              class="mt-1 space-y-1 overflow-y-auto flex-1"
+              class="mt-1 space-y-1"
               style="display: block"
             >
               <!-- Steps populated by JavaScript -->
@@ -292,9 +292,7 @@
         </div>
 
         <!-- Fixed Footer - Task Navigation -->
-        <div
-          class="tutorial-footer pt-3 border-t border-[var(--border-color)] mt-auto"
-        >
+        <div class="tutorial-footer pt-3 border-t border-[var(--border-color)]">
           <!-- <div class="flex gap-2 mb-2">
             <button
               id="prev-substep-btn"
@@ -506,6 +504,94 @@
     <!-- Link to your custom JS file -->
     <script type="module" src="js/script.js"></script>
 
+    <!-- Backup toggle functionality -->
+    <!-- Link to your custom JS file -->
+    <script type="module" src="js/script.js"></script>
+
+    <!-- Robust toggle functionality -->
+    <script>
+      // Single, robust toggle functionality
+      function setupExpandableToggles() {
+        console.log("Setting up expandable toggles...");
+
+        // Tips toggle
+        const tipsToggle = document.getElementById("toggle-tips");
+        const tipsContent = document.getElementById("tips-content");
+        const tipsIcon = document.getElementById("tips-icon");
+
+        if (tipsToggle && tipsContent && tipsIcon) {
+          // Remove any existing listeners by cloning
+          const newTipsToggle = tipsToggle.cloneNode(true);
+          tipsToggle.parentNode.replaceChild(newTipsToggle, tipsToggle);
+
+          newTipsToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Tips toggle clicked");
+
+            const isVisible = tipsContent.style.display !== "none";
+
+            if (isVisible) {
+              tipsContent.style.display = "none";
+              tipsIcon.textContent = "▼";
+              console.log("Tips collapsed");
+            } else {
+              tipsContent.style.display = "block";
+              tipsIcon.textContent = "▲";
+              console.log("Tips expanded");
+            }
+          });
+          console.log("✅ Tips toggle set up");
+        } else {
+          console.warn("❌ Tips toggle elements not found");
+        }
+
+        // Steps toggle
+        const stepsToggle = document.getElementById("toggle-all-steps");
+        const stepsContent = document.getElementById("all-steps-content");
+        const stepsIcon = document.getElementById("steps-toggle-icon");
+
+        if (stepsToggle && stepsContent && stepsIcon) {
+          // Remove any existing listeners by cloning
+          const newStepsToggle = stepsToggle.cloneNode(true);
+          stepsToggle.parentNode.replaceChild(newStepsToggle, stepsToggle);
+
+          newStepsToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Steps toggle clicked");
+
+            const isVisible = stepsContent.style.display !== "none";
+
+            if (isVisible) {
+              stepsContent.style.display = "none";
+              stepsIcon.textContent = "▼";
+              console.log("Steps collapsed");
+            } else {
+              stepsContent.style.display = "block";
+              stepsIcon.textContent = "▲";
+              console.log("Steps expanded");
+            }
+          });
+          console.log("✅ Steps toggle set up");
+        } else {
+          console.warn("❌ Steps toggle elements not found");
+        }
+      }
+
+      // Run on DOM ready
+      document.addEventListener("DOMContentLoaded", setupExpandableToggles);
+
+      // Also run after a slight delay to catch dynamically loaded content
+      setTimeout(setupExpandableToggles, 500);
+      setTimeout(setupExpandableToggles, 1000);
+
+      // Make it globally available for module calls
+      window.setupExpandableToggles = setupExpandableToggles;
+    </script>
+
+    <!-- Azure OpenAI integration -->
+    <!-- <script type="module" src="vibe-app/src/azureOpenAI.js"></script> -->
     <!-- Azure OpenAI integration -->
     <!-- <script type="module" src="vibe-app/src/azureOpenAI.js"></script> -->
   </body>

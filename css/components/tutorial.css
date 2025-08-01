@@ -1,8 +1,11 @@
 /* Enhanced Tutorial Panel */
 .left-sidebar {
-  width: 400px; /* Increased from 320px */
+  width: 400px;
   min-width: 350px;
   max-width: 500px;
+  height: 100vh;
+  overflow-y: auto; /* Make the whole sidebar scrollable */
+  padding: 1rem;
 }
 
 .tutorial-header {
@@ -80,12 +83,9 @@
 }
 
 .expandable-sections {
-  overflow: hidden; /* Changed from overflow-y: auto */
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  /* Remove the max-height constraint */
-  /* max-height: calc(100vh - 400px); */
+  /* Remove flex properties that restrict natural flow */
+  display: block;
+  margin-bottom: 1rem;
 }
 
 /* Compact Tutorial Styles */
@@ -107,21 +107,42 @@
 }
 
 .tutorial-footer {
-  flex-shrink: 0;
-  margin-top: auto;
+  /* Remove flex properties so it flows naturally at the bottom */
+  margin-top: 1rem;
 }
 
 /* Make steps overview use available space */
 .steps-overview {
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* Important for flex child to shrink */
+  display: block;
+  /* Remove flex properties that were causing layout issues */
 }
 
 #all-steps-content {
-  /* Remove fixed max-height */
-  /* max-h-32 is removed from HTML classes */
-  min-height: 0; /* Allow shrinking */
+  /* Remove fixed max-height and flex properties */
+  /* Let content flow naturally */
+}
+
+/* Expandable/Collapsible functionality */
+.expandable-content {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expandable-content.collapsed {
+  display: none !important;
+}
+
+.expandable-content.expanded {
+  display: block !important;
+}
+
+/* Toggle icon rotation */
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
 }
 
 /* Line clamp utility for descriptions */
