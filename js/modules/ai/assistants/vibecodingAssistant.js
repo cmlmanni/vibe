@@ -2,8 +2,14 @@
 import { AIAssistant } from "../base/aiAssistant.js";
 
 export class VibecodingAssistant extends AIAssistant {
-  constructor(eventLogger, domElements) {
-    const systemPrompt = `You are a friendly Python programming assistant specializing in turtle graphics. You maintain context from our previous conversation to provide better help.
+  constructor(params) {
+    // Support both old and new constructor patterns
+    if (typeof params === "object" && !params.systemPrompt && !params.config) {
+      // Old pattern: constructor(eventLogger, domElements)
+      const eventLogger = params;
+      const domElements = arguments[1];
+
+      const systemPrompt = `You are a friendly Python programming assistant specializing in turtle graphics. You maintain context from our previous conversation to provide better help.
 
 Key capabilities:
 - Remember what we've discussed before
@@ -17,16 +23,47 @@ Key capabilities:
 
 Be helpful, friendly, and contextually aware of our ongoing conversation.`;
 
-    super(systemPrompt, eventLogger, domElements);
+      super({
+        systemPrompt,
+        eventLogger,
+        domElements,
+        assistantId: "vibecoding",
+        config: {
+          id: "vibecoding",
+          name: "VibeCoding Assistant",
+          capabilities: [
+            "code_generation",
+            "context_awareness",
+            "turtle_graphics",
+          ],
+        },
+      });
+    } else {
+      // New pattern: constructor(params)
+      super(params);
+    }
+  }
+
+  initialize() {
+    super.initialize();
+
+    // VibeCoding-specific initialization
+    this.codeExamples = [];
+    this.lastCodeSuggestion = null;
+
+    console.log(`🚀 VibeCoding Assistant initialized (${this.assistantId})`);
   }
 
   async getSuggestion(userPrompt) {
     console.log("🚀 VibecodingAssistant processing:", userPrompt);
     if (this.isGenerating) return;
 
+    this.emit("suggestionStarted", { prompt: userPrompt });
+
     this.eventLogger.logEvent("ai_prompt", {
       prompt: userPrompt,
       mode: "vibecoding",
+      assistantId: this.assistantId,
       historyLength: this.conversationManager.getHistoryLength(),
     });
 
@@ -34,13 +71,72 @@ Be helpful, friendly, and contextually aware of our ongoing conversation.`;
 
     this.eventLogger.logEvent("ai_response", {
       response,
+      assistantId: this.assistantId,
       historyLength: this.conversationManager.getHistoryLength(),
     });
 
+    // Store last code suggestion for reference
     if (response.type === "code") {
+      this.lastCodeSuggestion = response.code;
+      this.codeExamples.push({
+        prompt: userPrompt,
+        code: response.code,
+        timestamp: new Date(),
+      });
+
       this.createChatMessage(response.content, "ai", response.code);
+      this.emit("codeGenerated", { code: response.code, prompt: userPrompt });
     } else if (response.type === "text") {
       this.createChatMessage(response.content, "ai");
+      this.emit("textResponse", {
+        content: response.content,
+        prompt: userPrompt,
+      });
     }
+
+    this.emit("suggestionCompleted", { response, prompt: userPrompt });
+  }
+
+  /**
+   * Get the last code suggestion
+   * @returns {string|null} Last generated code or null
+   */
+  getLastCodeSuggestion() {
+    return this.lastCodeSuggestion;
+  }
+
+  /**
+   * Get all code examples generated in this session
+   * @returns {Array} Array of code examples with metadata
+   */
+  getCodeExamples() {
+    return [...this.codeExamples];
+  }
+
+  /**
+   * Clear code examples history
+   */
+  clearCodeExamples() {
+    this.codeExamples = [];
+    this.lastCodeSuggestion = null;
+    this.emit("codeExamplesCleared");
+  }
+
+  /**
+   * Get assistant-specific status
+   * @returns {object} Enhanced status information
+   */
+  getStatus() {
+    const baseStatus = super.getStatus();
+    return {
+      ...baseStatus,
+      codeExamplesCount: this.codeExamples.length,
+      hasLastCodeSuggestion: !!this.lastCodeSuggestion,
+      specializations: [
+        "turtle_graphics",
+        "python_programming",
+        "code_generation",
+      ],
+    };
   }
 }

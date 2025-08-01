@@ -1,20 +1,109 @@
 /* filepath: /js/modules/ai/base/AIAssistant.js */
-import { ConversationManager } from './conversationManager.js';
-import { ChatRenderer } from '../ui/chatRenderer.js';
-import { getAIResponse } from '../utils/apiClient.js';
+import { ConversationManager } from "./conversationManager.js";
+import { ChatRenderer } from "../ui/chatRenderer.js";
+import { getAIResponse } from "../utils/apiClient.js";
 
 export class AIAssistant {
-  constructor(systemPrompt, eventLogger, domElements) {
+  constructor(params = {}) {
+    // Handle both old and new constructor patterns
+    if (typeof params === "string") {
+      // Old pattern: constructor(systemPrompt, eventLogger, domElements)
+      this.systemPrompt = params;
+      this.eventLogger = arguments[1];
+      this.domElements = arguments[2];
+      this.config = {};
+      this.assistantId = "unknown";
+    } else {
+      // New pattern: constructor({systemPrompt, eventLogger, domElements, config, assistantId, ...})
+      this.systemPrompt =
+        params.systemPrompt || params.config?.systemPrompt || "";
+      this.eventLogger = params.eventLogger;
+      this.domElements = params.domElements;
+      this.config = params.config || {};
+      this.assistantId = params.assistantId || this.config.id || "unknown";
+    }
+
     this.isGenerating = false;
-    this.systemPrompt = systemPrompt;
-    this.eventLogger = eventLogger;
-    this.domElements = domElements;
-    
+    this.capabilities = this.config.capabilities || [];
+    this.settings = { ...this.config.settings };
+    this.eventEmitter = new EventTarget();
+
     // Initialize conversation manager
-    this.conversationManager = new ConversationManager(systemPrompt, eventLogger);
-    
+    this.conversationManager = new ConversationManager(
+      this.systemPrompt,
+      this.eventLogger
+    );
+
     // Initialize chat renderer
-    this.chatRenderer = new ChatRenderer(domElements, this);
+    this.chatRenderer = new ChatRenderer(this.domElements, this);
+
+    // Initialize assistant-specific setup
+    this.initialize();
+  }
+
+  /**
+   * Initialize assistant - override in subclasses for custom setup
+   */
+  initialize() {
+    // Default implementation - can be overridden
+    this.emit("initialized", { assistantId: this.assistantId });
+  }
+
+  /**
+   * Get assistant metadata
+   * @returns {object} Assistant metadata
+   */
+  getMetadata() {
+    return {
+      id: this.assistantId,
+      name: this.config.name || this.assistantId,
+      description: this.config.description || "",
+      capabilities: this.capabilities,
+      category: this.config.category || "general",
+      icon: this.config.icon || "🤖",
+      version: this.config.version || "1.0.0",
+    };
+  }
+
+  /**
+   * Check if assistant has a specific capability
+   * @param {string} capability - Capability to check
+   * @returns {boolean} True if has capability
+   */
+  hasCapability(capability) {
+    return this.capabilities.includes(capability);
+  }
+
+  /**
+   * Update assistant settings
+   * @param {object} newSettings - Settings to update
+   */
+  updateSettings(newSettings) {
+    this.settings = { ...this.settings, ...newSettings };
+    this.emit("settingsUpdated", { settings: this.settings });
+  }
+
+  /**
+   * Get current settings
+   * @returns {object} Current settings
+   */
+  getSettings() {
+    return { ...this.settings };
+  }
+
+  /**
+   * Event emitter methods
+   */
+  emit(event, data) {
+    this.eventEmitter.dispatchEvent(new CustomEvent(event, { detail: data }));
+  }
+
+  on(event, handler) {
+    this.eventEmitter.addEventListener(event, handler);
+  }
+
+  off(event, handler) {
+    this.eventEmitter.removeEventListener(event, handler);
   }
 
   // Add message to conversation history
@@ -84,12 +173,11 @@ export class AIAssistant {
 
       // Parse response for code blocks
       return this.parseResponse(response);
-
     } catch (error) {
       console.error("Error fetching AI response:", error);
       this.chatRenderer.removeLastMessage();
       this.isGenerating = false;
-      
+
       return {
         type: "text",
         content: `Error: ${error.message || "Failed to get AI response"}`,
@@ -124,5 +212,37 @@ export class AIAssistant {
   // Abstract method for subclasses
   async getSuggestion(userPrompt) {
     throw new Error("getSuggestion method must be implemented by subclasses");
+  }
+
+  /**
+   * Cleanup method for destroying assistant instance
+   */
+  destroy() {
+    // Clear conversation history
+    this.conversationManager.clearHistory();
+
+    // Clear chat UI
+    this.chatRenderer.clearChat();
+
+    // Remove all event listeners
+    this.eventEmitter = new EventTarget();
+
+    this.emit("destroyed", { assistantId: this.assistantId });
+
+    console.log(`🗑️ Assistant ${this.assistantId} destroyed`);
+  }
+
+  /**
+   * Get assistant status and health information
+   * @returns {object} Status information
+   */
+  getStatus() {
+    return {
+      id: this.assistantId,
+      isGenerating: this.isGenerating,
+      conversationLength: this.conversationManager.getHistoryLength(),
+      lastActivity: this.conversationManager.getLastActivity?.() || null,
+      health: "healthy", // Can be extended with health checks
+    };
   }
 }
