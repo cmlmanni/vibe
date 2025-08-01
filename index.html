@@ -166,129 +166,122 @@
           </div>
         </div>
 
-        <!-- Current Task - Compact -->
-        <div class="current-task bg-gray-800 p-3 rounded-lg mb-3">
-          <h3
-            id="task-title"
-            class="font-semibold text-white text-sm mb-2 flex items-center"
-          >
-            <span class="mr-2">📝</span>
-            <span class="task-title-text">Draw a Square</span>
-          </h3>
-          <p id="task-description" class="text-xs text-gray-300 line-clamp-2">
-            Learn the fundamentals of turtle graphics by creating your first
-            geometric shape.
-          </p>
-        </div>
-
-        <!-- Current Step - Focused -->
-        <div
-          class="current-step bg-blue-900 bg-opacity-40 border border-blue-500 p-3 rounded-lg mb-3"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="font-semibold text-blue-300 text-xs">Current Step</h4>
-            <span id="step-counter" class="text-xs text-blue-400">1 of 5</span>
-          </div>
-          <p id="step-text" class="text-sm text-gray-200 mb-3 leading-relaxed">
-            Import the turtle module to access graphics functions
-          </p>
-
-          <!-- Compact Code Hint (Collapsible) -->
-          <div
-            id="code-hint"
-            class="code-hint bg-gray-900 rounded border border-gray-600 mb-3"
-            style="display: none"
-          >
-            <button
-              id="toggle-code-hint"
-              class="w-full text-left p-2 text-xs font-mono text-green-400 hover:bg-gray-800 flex items-center justify-between"
+        <!-- Scrollable Content Area (on smaller screens) -->
+        <div class="tutorial-scrollable-content">
+          <!-- Current Task - Compact -->
+          <div class="current-task bg-gray-800 p-3 rounded-lg mb-3">
+            <h3
+              id="task-title"
+              class="font-semibold text-white text-sm mb-2 flex items-center"
             >
-              <span>💻 Show Code Example</span>
-              <span id="code-hint-icon">▼</span>
-            </button>
-            <div id="code-hint-content" class="px-2 pb-2" style="display: none">
-              <pre
-                class="text-xs font-mono text-gray-300 overflow-x-auto"
-              ><code id="code-example">import turtle</code></pre>
+              <span class="mr-2">📝</span>
+              <span class="task-title-text">Draw a Square</span>
+            </h3>
+            <p id="task-description" class="text-xs text-gray-300 line-clamp-2">
+              Learn the fundamentals of turtle graphics by creating your first
+              geometric shape.
+            </p>
+          </div>
+
+          <!-- Current Step - Focused -->
+          <div
+            class="current-step bg-blue-900 bg-opacity-40 border border-blue-500 p-3 rounded-lg mb-3"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-semibold text-blue-300 text-xs">Current Step</h4>
+              <span id="step-counter" class="text-xs text-blue-400"
+                >1 of 5</span
+              >
+            </div>
+            <p
+              id="step-text"
+              class="text-sm text-gray-200 mb-3 leading-relaxed"
+            >
+              Import the turtle module to access graphics functions
+            </p>
+
+            <!-- Compact Code Hint (Collapsible) -->
+            <div
+              id="code-hint"
+              class="code-hint bg-gray-900 rounded border border-gray-600 mb-3"
+              style="display: none"
+            >
+              <button
+                id="toggle-code-hint"
+                class="w-full text-left p-2 text-xs font-mono text-green-400 hover:bg-gray-800 flex items-center justify-between"
+              >
+                <span>💻 Show Code Example</span>
+                <span id="code-hint-icon">▼</span>
+              </button>
+              <div
+                id="code-hint-content"
+                class="px-2 pb-2"
+                style="display: none"
+              >
+                <pre
+                  class="text-xs font-mono text-gray-300 overflow-x-auto"
+                ><code id="code-example">import turtle</code></pre>
+              </div>
+            </div>
+
+            <!-- Step Navigation -->
+            <div class="flex gap-2">
+              <button
+                id="prev-substep-btn"
+                class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              >
+                ← Prev Step
+              </button>
+              <button
+                id="next-substep-btn"
+                class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+              >
+                Next Step →
+              </button>
             </div>
           </div>
 
-          <!-- Step Navigation -->
-          <div class="flex gap-2">
-            <button
-              id="prev-substep-btn"
-              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
-            >
-              ← Prev Step
-            </button>
-            <button
-              id="next-substep-btn"
-              class="flex-1 px-3 py-2 bg-gray-600 text-white font-semibold rounded text-xs hover:bg-gray-700 disabled:opacity-50"
-            >
-              Next Step →
-            </button>
-          </div>
-        </div>
+          <!-- Collapsible Sections -->
+          <div class="expandable-sections">
+            <!-- Tips Section (Collapsible) -->
+            <div class="tips-section mb-2">
+              <button
+                id="toggle-tips"
+                class="w-full text-left bg-yellow-900 bg-opacity-30 p-2 rounded text-xs font-semibold text-yellow-400 hover:bg-yellow-900 hover:bg-opacity-50 flex items-center justify-between"
+              >
+                <span>💡 Tips for This Step</span>
+                <span id="tips-icon">▼</span>
+              </button>
+              <div
+                id="tips-content"
+                class="mt-1 px-2 py-1 text-xs text-gray-300"
+                style="display: block"
+              >
+                <div id="current-tips">
+                  <!-- Tips populated by JavaScript -->
+                </div>
+              </div>
+            </div>
 
-        <!-- Quick Actions - Always Visible
-        <div class="quick-actions bg-gray-800 p-3 rounded-lg mb-3">
-          <div class="flex gap-2 mb-2">
-            <button
-              id="show-hint-btn"
-              class="flex-1 px-2 py-1 bg-yellow-600 text-white font-semibold rounded text-xs hover:bg-yellow-700"
-              title="Get a hint for current step"
-            >
-              💡 Hint
-            </button>
-            <button
-              id="show-all-steps-btn"
-              class="flex-1 px-2 py-1 bg-purple-600 text-white font-semibold rounded text-xs hover:bg-purple-700"
-              title="View all steps overview"
-            >
-              📋 Overview
-            </button>
-          </div>
-        </div> -->
-
-        <!-- Collapsible Sections -->
-        <div class="expandable-sections">
-          <!-- Tips Section (Collapsible) -->
-          <div class="tips-section mb-2">
-            <button
-              id="toggle-tips"
-              class="w-full text-left bg-yellow-900 bg-opacity-30 p-2 rounded text-xs font-semibold text-yellow-400 hover:bg-yellow-900 hover:bg-opacity-50 flex items-center justify-between"
-            >
-              <span>💡 Tips for This Step</span>
-              <span id="tips-icon">▼</span>
-            </button>
-            <div
-              id="tips-content"
-              class="mt-1 px-2 py-1 text-xs text-gray-300"
-              style="display: block"
-            >
-              <div id="current-tips">
-                <!-- Tips populated by JavaScript -->
+            <!-- All Steps Overview (Collapsible) -->
+            <div class="steps-overview mb-2">
+              <button
+                id="toggle-all-steps"
+                class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between"
+              >
+                <span>📋 All Steps</span>
+                <span id="steps-toggle-icon">▼</span>
+              </button>
+              <div
+                id="all-steps-content"
+                class="mt-1 space-y-1"
+                style="display: block"
+              >
+                <!-- Steps populated by JavaScript -->
               </div>
             </div>
           </div>
-
-          <!-- All Steps Overview (Collapsible) -->
-          <div class="steps-overview mb-2">
-            <button
-              id="toggle-all-steps"
-              class="w-full text-left bg-gray-700 p-2 rounded text-xs font-semibold text-gray-300 hover:bg-gray-600 flex items-center justify-between"
-            >
-              <span>📋 All Steps</span>
-              <span id="steps-toggle-icon">▼</span>
-            </button>
-            <div
-              id="all-steps-content"
-              class="mt-1 space-y-1"
-              style="display: block"
-            >
-              <!-- Steps populated by JavaScript -->
-            </div>
-          </div>
+          <!-- End of scrollable content -->
         </div>
 
         <!-- Fixed Footer - Task Navigation -->

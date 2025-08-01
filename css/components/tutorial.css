@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  overflow: hidden; /* Prevent the entire sidebar from scrolling */
+  transition: all 0.3s ease; /* Smooth transitions */
 }
 
 .tutorial-header {
@@ -14,6 +16,7 @@
   padding-bottom: 1rem;
   margin-bottom: 1rem;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
 .task-progress-bar {
@@ -26,6 +29,7 @@
 .current-task,
 .current-step {
   flex-shrink: 0;
+  transition: all 0.3s ease; /* Smooth size transitions */
 }
 
 .current-step {
@@ -91,6 +95,49 @@
   margin-bottom: 1rem;
 }
 
+/* Default layout for larger screens */
+.tutorial-scrollable-content {
+  display: contents; /* On larger screens, behave as if wrapper doesn't exist */
+}
+
+/* On smaller screens, create a wrapper for scrollable content */
+@media (max-height: 800px) {
+  .tutorial-scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .expandable-sections {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+
+  /* Ensure footer stays visible */
+  .tutorial-footer {
+    margin-top: auto;
+    border-top: 2px solid var(--border-color); /* Make footer border more prominent */
+    background-color: var(--sidebar-bg);
+    padding-top: 1rem;
+  }
+}
+
+/* For very tall screens, ensure content is well distributed */
+@media (min-height: 1000px) {
+  .expandable-sections {
+    margin-bottom: 2rem; /* Add more space on tall screens */
+  }
+
+  .current-task,
+  .current-step {
+    margin-bottom: 1.5rem; /* More generous spacing */
+  }
+}
+
 /* Compact Tutorial Styles */
 .code-hint {
   transition: all 0.2s ease;
@@ -113,6 +160,9 @@
   /* Keep button always visible at bottom */
   flex-shrink: 0;
   margin-top: 0;
+  background-color: var(--sidebar-bg); /* Ensure visibility */
+  position: relative;
+  z-index: 1;
 }
 
 /* Make steps overview use available space */
@@ -153,6 +203,7 @@
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2; /* Standard property for compatibility */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -165,21 +216,94 @@
   }
 }
 
+/* Additional responsive adjustments for smaller screens */
+@media (max-height: 800px) {
+  /* Make the sidebar content scrollable on smaller screens */
+  .left-sidebar {
+    overflow-y: auto;
+  }
+
+  /* Create a scrollable content area that excludes only the footer */
+  .tutorial-content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin-bottom: 1rem;
+  }
+
+  /* Compress fixed elements on smaller screens */
+  .tutorial-header {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .current-task,
+  .current-step {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .current-task p,
+  .current-step p {
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
+
+  .current-task h3,
+  .current-step h4 {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-height: 700px) {
+  /* More aggressive compression for very small screens */
+  .left-sidebar {
+    padding: 0.75rem;
+  }
+
+  .tutorial-header {
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .current-task,
+  .current-step {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  /* Hide some less critical elements on very small screens */
+  .current-task p {
+    display: none;
+  }
+
+  /* Make step navigation more compact */
+  .current-step .flex.gap-2 button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6rem;
+  }
+}
+
 /* Scrollbar styling for tutorial content */
-#tutorial-content::-webkit-scrollbar {
+#tutorial-content::-webkit-scrollbar,
+.tutorial-scrollable-content::-webkit-scrollbar {
   width: 6px;
 }
 
-#tutorial-content::-webkit-scrollbar-track {
+#tutorial-content::-webkit-scrollbar-track,
+.tutorial-scrollable-content::-webkit-scrollbar-track {
   background: var(--sidebar-bg);
 }
 
-#tutorial-content::-webkit-scrollbar-thumb {
+#tutorial-content::-webkit-scrollbar-thumb,
+.tutorial-scrollable-content::-webkit-scrollbar-thumb {
   background: #4b5563;
   border-radius: 3px;
 }
 
-#tutorial-content::-webkit-scrollbar-thumb:hover {
+#tutorial-content::-webkit-scrollbar-thumb:hover,
+.tutorial-scrollable-content::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
 
