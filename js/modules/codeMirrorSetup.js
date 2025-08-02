@@ -10,6 +10,8 @@ export function setupCodeMirror(textArea) {
     scrollbarStyle: "native",
     extraKeys: {
       "Ctrl-Space": "autocomplete",
+      "Ctrl-/": "toggleComment",
+      "Cmd-/": "toggleComment",
     },
     // Add these options for better initialization
     autofocus: true,
