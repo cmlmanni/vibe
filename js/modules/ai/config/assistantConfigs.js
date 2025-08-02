@@ -51,39 +51,68 @@ Be helpful, friendly, and contextually aware of our ongoing conversation.`,
 
   reflective: {
     id: "reflective",
-    name: "Reflective Tutor",
+    name: "Socratic Tutor",
     description:
-      "A Socratic tutor that guides learning through thoughtful questions rather than direct answers.",
+      "A Socratic tutor that guides learning through strategic questions, helping students discover solutions through inquiry and reflection.",
     category: "education",
     icon: "🤔",
-    version: "1.0.0",
+    version: "2.0.0",
     capabilities: [
-      "socratic_method",
-      "guided_learning",
-      "context_awareness",
-      "educational_guidance",
+      "socratic_questioning",
+      "guided_discovery",
+      "strategic_inquiry",
+      "reflection_facilitation",
       "conversation_memory",
     ],
-    systemPrompt: `You are a friendly Socratic tutor specializing in Python turtle graphics. You maintain conversation context to guide learning effectively.
+    systemPrompt: `You are a Socratic tutor specializing in Python turtle graphics. Your primary method is to guide learning through strategic questioning rather than providing direct answers or solutions.
 
-Key capabilities:
-- Remember our previous discussions and learning progress
-- Guide through thoughtful questions rather than giving direct answers
-- Reference what we've covered before
-- Build upon previous learning moments
-- Encourage discovery and understanding
+Core Socratic principles:
+- Ask questions that lead students to discover answers themselves
+- Break down complex problems into smaller, manageable questions
+- Help students examine their assumptions and reasoning
+- Guide them to test their ideas and learn from results
+- Never give direct answers - always respond with clarifying or guiding questions
+- Build understanding step by step through dialogue
 
-You should NOT write code for users, but guide them to discover solutions themselves while maintaining awareness of our conversation history.`,
+Questioning strategies:
+- "What do you think will happen if...?"
+- "Why do you think that approach might work?"
+- "What patterns do you notice in your code?"
+- "How is this similar to something you've done before?"
+- "What would you try first to solve this?"
+- "What does the error message tell you?"
+- "If that didn't work, what might be the reason?"
+
+Response patterns:
+- Always respond with questions that guide thinking
+- Acknowledge their attempts: "I see you tried X. What made you choose that approach?"
+- Connect to prior knowledge: "How does this relate to what you learned earlier?"
+- Encourage experimentation: "What would happen if you changed...?"
+- Help them reflect: "What did you learn from that result?"
+
+You should NEVER:
+- Provide direct code solutions
+- Give step-by-step instructions
+- Tell them exactly what to do
+- Explain concepts directly without questioning
+
+Instead, always guide through questions that help them discover the solution themselves.`,
     settings: {
       includeCodeContext: true,
       maxHistoryLength: 15,
       avoidDirectAnswers: true,
-      questionGuidanceRatio: 0.7, // 70% questions, 30% guidance
+      neverProvideCode: true,
+      questionGuidanceRatio: 0.9, // 90% questions, 10% guidance
+      socraticMode: true,
     },
     events: {
       initialized: (data) =>
-        console.log(`Reflective tutor initialized: ${data.assistantId}`),
-      questionAsked: (data) => console.log(`Socratic question asked`),
+        console.log(`Socratic tutor initialized: ${data.assistantId}`),
+      socraticQuestionAsked: (data) => console.log(`Socratic question asked`),
+      inquiryThreadStarted: (data) =>
+        console.log(`New inquiry thread started: ${data.topic}`),
+      codeRedirectedToQuestion: (data) =>
+        console.log(`Code response converted to question`),
     },
     requiredParams: ["eventLogger", "domElements"],
   },
@@ -243,7 +272,30 @@ Instead, only react to what they've already done:
  * @returns {object|null} Configuration object or null if not found
  */
 export function getAssistantConfig(id) {
-  return assistantConfigs[id] || null;
+  console.log(
+    `🔍 [AssistantConfig] Getting configuration for assistant: ${id}`
+  );
+
+  const config = assistantConfigs[id] || null;
+
+  if (config) {
+    console.log(`✅ [AssistantConfig] Found configuration for '${id}':`, {
+      name: config.name,
+      version: config.version,
+      category: config.category,
+      capabilities: config.capabilities,
+    });
+  } else {
+    console.warn(
+      `❌ [AssistantConfig] No configuration found for assistant: ${id}`
+    );
+    console.log(
+      `🔍 [AssistantConfig] Available assistants:`,
+      Object.keys(assistantConfigs)
+    );
+  }
+
+  return config;
 }
 
 /**
@@ -251,7 +303,24 @@ export function getAssistantConfig(id) {
  * @returns {object} All configurations
  */
 export function getAllAssistantConfigs() {
-  return { ...assistantConfigs };
+  console.log(`📋 [AssistantConfig] Getting all assistant configurations`);
+
+  const allConfigs = { ...assistantConfigs };
+  const configSummary = Object.entries(allConfigs).map(([id, config]) => ({
+    id,
+    name: config.name,
+    category: config.category,
+    version: config.version,
+  }));
+
+  console.log(
+    `📊 [AssistantConfig] Found ${
+      Object.keys(allConfigs).length
+    } assistant configurations:`,
+    configSummary
+  );
+
+  return allConfigs;
 }
 
 /**
@@ -260,9 +329,26 @@ export function getAllAssistantConfigs() {
  * @returns {Array} Array of configurations in the category
  */
 export function getAssistantsByCategory(category) {
-  return Object.values(assistantConfigs).filter(
+  console.log(
+    `🏷️ [AssistantConfig] Filtering assistants by category: ${category}`
+  );
+
+  const filteredConfigs = Object.values(assistantConfigs).filter(
     (config) => config.category === category
   );
+
+  const results = filteredConfigs.map((config) => ({
+    id: config.id,
+    name: config.name,
+    version: config.version,
+  }));
+
+  console.log(
+    `🎯 [AssistantConfig] Found ${filteredConfigs.length} assistants in category '${category}':`,
+    results
+  );
+
+  return filteredConfigs;
 }
 
 /**
@@ -271,9 +357,26 @@ export function getAssistantsByCategory(category) {
  * @returns {Array} Array of configurations with the capability
  */
 export function getAssistantsByCapability(capability) {
-  return Object.values(assistantConfigs).filter((config) =>
+  console.log(
+    `🛠️ [AssistantConfig] Filtering assistants by capability: ${capability}`
+  );
+
+  const filteredConfigs = Object.values(assistantConfigs).filter((config) =>
     config.capabilities.includes(capability)
   );
+
+  const results = filteredConfigs.map((config) => ({
+    id: config.id,
+    name: config.name,
+    capabilities: config.capabilities,
+  }));
+
+  console.log(
+    `⚙️ [AssistantConfig] Found ${filteredConfigs.length} assistants with capability '${capability}':`,
+    results
+  );
+
+  return filteredConfigs;
 }
 
 /**
@@ -282,10 +385,35 @@ export function getAssistantsByCapability(capability) {
  * @param {object} config - Configuration object
  */
 export function addAssistantConfig(id, config) {
+  console.log(`➕ [AssistantConfig] Adding new assistant configuration: ${id}`);
+  console.log(`🔧 [AssistantConfig] Configuration details:`, {
+    id,
+    name: config.name,
+    category: config.category,
+    version: config.version,
+    capabilities: config.capabilities,
+  });
+
+  // Validate the configuration before adding
+  const validation = validateAssistantConfig({ id, ...config });
+  if (!validation.isValid) {
+    console.error(
+      `❌ [AssistantConfig] Validation failed for '${id}':`,
+      validation.errors
+    );
+    throw new Error(
+      `Invalid assistant configuration: ${validation.errors.join(", ")}`
+    );
+  }
+
   if (assistantConfigs[id]) {
     console.warn(
-      `Assistant configuration '${id}' already exists. Overwriting...`
+      `⚠️ [AssistantConfig] Assistant configuration '${id}' already exists. Overwriting...`
     );
+    console.log(`🔄 [AssistantConfig] Previous configuration:`, {
+      name: assistantConfigs[id].name,
+      version: assistantConfigs[id].version,
+    });
   }
 
   assistantConfigs[id] = {
@@ -293,7 +421,14 @@ export function addAssistantConfig(id, config) {
     ...config,
   };
 
-  console.log(`✅ Added assistant configuration: ${id}`);
+  console.log(
+    `✅ [AssistantConfig] Successfully added assistant configuration: ${id}`
+  );
+  console.log(
+    `📊 [AssistantConfig] Total assistants now: ${
+      Object.keys(assistantConfigs).length
+    }`
+  );
 }
 
 /**
@@ -302,30 +437,305 @@ export function addAssistantConfig(id, config) {
  * @returns {object} Validation result with isValid and errors
  */
 export function validateAssistantConfig(config) {
-  const errors = [];
+  console.log(
+    `🔍 [AssistantConfig] Validating configuration for:`,
+    config.id || "unknown"
+  );
 
+  const errors = [];
+  const warnings = [];
+
+  // Required field validations
   if (!config.id || typeof config.id !== "string") {
     errors.push("Configuration must have a valid string ID");
+  } else {
+    console.log(`✓ [AssistantConfig] Valid ID: ${config.id}`);
   }
 
   if (!config.name || typeof config.name !== "string") {
     errors.push("Configuration must have a valid name");
+  } else {
+    console.log(`✓ [AssistantConfig] Valid name: ${config.name}`);
   }
 
   if (!config.systemPrompt || typeof config.systemPrompt !== "string") {
     errors.push("Configuration must have a valid system prompt");
+  } else {
+    const promptLength = config.systemPrompt.length;
+    console.log(
+      `✓ [AssistantConfig] Valid system prompt (${promptLength} characters)`
+    );
+
+    if (promptLength < 100) {
+      warnings.push("System prompt is quite short (< 100 characters)");
+    } else if (promptLength > 3000) {
+      warnings.push("System prompt is very long (> 3000 characters)");
+    }
   }
 
   if (config.capabilities && !Array.isArray(config.capabilities)) {
     errors.push("Capabilities must be an array");
+  } else if (config.capabilities) {
+    console.log(
+      `✓ [AssistantConfig] Valid capabilities: ${config.capabilities.join(
+        ", "
+      )}`
+    );
+
+    if (config.capabilities.length === 0) {
+      warnings.push("No capabilities defined");
+    }
   }
 
   if (config.requiredParams && !Array.isArray(config.requiredParams)) {
     errors.push("Required parameters must be an array");
+  } else if (config.requiredParams) {
+    console.log(
+      `✓ [AssistantConfig] Required parameters: ${config.requiredParams.join(
+        ", "
+      )}`
+    );
+  }
+
+  // Optional field validations
+  if (config.version) {
+    console.log(`✓ [AssistantConfig] Version: ${config.version}`);
+  } else {
+    warnings.push("No version specified");
+  }
+
+  if (config.category) {
+    console.log(`✓ [AssistantConfig] Category: ${config.category}`);
+  } else {
+    warnings.push("No category specified");
+  }
+
+  if (config.description) {
+    console.log(
+      `✓ [AssistantConfig] Description: ${config.description.substring(
+        0,
+        50
+      )}...`
+    );
+  } else {
+    warnings.push("No description provided");
+  }
+
+  // Settings validation
+  if (config.settings) {
+    console.log(
+      `🔧 [AssistantConfig] Settings provided:`,
+      Object.keys(config.settings)
+    );
+
+    if (
+      config.settings.maxHistoryLength &&
+      typeof config.settings.maxHistoryLength !== "number"
+    ) {
+      errors.push("maxHistoryLength must be a number");
+    }
+
+    if (
+      config.settings.questionGuidanceRatio &&
+      (typeof config.settings.questionGuidanceRatio !== "number" ||
+        config.settings.questionGuidanceRatio < 0 ||
+        config.settings.questionGuidanceRatio > 1)
+    ) {
+      errors.push("questionGuidanceRatio must be a number between 0 and 1");
+    }
+  }
+
+  // Events validation
+  if (config.events) {
+    const eventKeys = Object.keys(config.events);
+    console.log(`📡 [AssistantConfig] Events defined: ${eventKeys.join(", ")}`);
+
+    eventKeys.forEach((eventKey) => {
+      if (typeof config.events[eventKey] !== "function") {
+        warnings.push(`Event handler '${eventKey}' is not a function`);
+      }
+    });
+  }
+
+  const result = {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  };
+
+  if (result.isValid) {
+    console.log(
+      `✅ [AssistantConfig] Configuration validation passed for '${config.id}'`
+    );
+    if (warnings.length > 0) {
+      console.warn(
+        `⚠️ [AssistantConfig] Validation warnings for '${config.id}':`,
+        warnings
+      );
+    }
+  } else {
+    console.error(
+      `❌ [AssistantConfig] Configuration validation failed for '${config.id}':`,
+      errors
+    );
+    if (warnings.length > 0) {
+      console.warn(`⚠️ [AssistantConfig] Additional warnings:`, warnings);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Get a summary of all assistant configurations
+ * @returns {object} Summary statistics and overview
+ */
+export function getAssistantConfigSummary() {
+  console.log(
+    `📊 [AssistantConfig] Generating assistant configuration summary`
+  );
+
+  const configs = Object.values(assistantConfigs);
+  const summary = {
+    totalAssistants: configs.length,
+    categories: {},
+    capabilities: {},
+    versions: {},
+    averagePromptLength: 0,
+    assistantDetails: [],
+  };
+
+  configs.forEach((config) => {
+    // Count categories
+    summary.categories[config.category] =
+      (summary.categories[config.category] || 0) + 1;
+
+    // Count capabilities
+    if (config.capabilities) {
+      config.capabilities.forEach((capability) => {
+        summary.capabilities[capability] =
+          (summary.capabilities[capability] || 0) + 1;
+      });
+    }
+
+    // Count versions
+    summary.versions[config.version] =
+      (summary.versions[config.version] || 0) + 1;
+
+    // Calculate prompt length
+    if (config.systemPrompt) {
+      summary.averagePromptLength += config.systemPrompt.length;
+    }
+
+    // Store assistant details
+    summary.assistantDetails.push({
+      id: config.id,
+      name: config.name,
+      category: config.category,
+      version: config.version,
+      promptLength: config.systemPrompt ? config.systemPrompt.length : 0,
+      capabilityCount: config.capabilities ? config.capabilities.length : 0,
+    });
+  });
+
+  summary.averagePromptLength = Math.round(
+    summary.averagePromptLength / configs.length
+  );
+
+  console.log(`📈 [AssistantConfig] Summary generated:`, {
+    totalAssistants: summary.totalAssistants,
+    categories: Object.keys(summary.categories),
+    topCapabilities: Object.entries(summary.capabilities)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([cap]) => cap),
+    averagePromptLength: summary.averagePromptLength,
+  });
+
+  return summary;
+}
+
+/**
+ * Validate all assistant configurations
+ * @returns {object} Validation results for all assistants
+ */
+export function validateAllAssistantConfigs() {
+  console.log(`🔍 [AssistantConfig] Validating all assistant configurations`);
+
+  const results = {};
+  const overallStats = {
+    total: 0,
+    valid: 0,
+    invalid: 0,
+    warnings: 0,
+  };
+
+  Object.entries(assistantConfigs).forEach(([id, config]) => {
+    const validation = validateAssistantConfig(config);
+    results[id] = validation;
+
+    overallStats.total++;
+    if (validation.isValid) {
+      overallStats.valid++;
+    } else {
+      overallStats.invalid++;
+    }
+    if (validation.warnings && validation.warnings.length > 0) {
+      overallStats.warnings++;
+    }
+  });
+
+  console.log(`📊 [AssistantConfig] Overall validation results:`, overallStats);
+
+  if (overallStats.invalid > 0) {
+    const invalidConfigs = Object.entries(results)
+      .filter(([, result]) => !result.isValid)
+      .map(([id]) => id);
+    console.error(
+      `❌ [AssistantConfig] Invalid configurations found:`,
+      invalidConfigs
+    );
   }
 
   return {
-    isValid: errors.length === 0,
-    errors,
+    results,
+    stats: overallStats,
+  };
+}
+
+/**
+ * Check if assistant configuration exists and is valid
+ * @param {string} id - Assistant identifier
+ * @returns {object} Existence and validity check result
+ */
+export function checkAssistantConfig(id) {
+  console.log(`🔍 [AssistantConfig] Checking assistant configuration: ${id}`);
+
+  const exists = id in assistantConfigs;
+
+  if (!exists) {
+    console.warn(`❌ [AssistantConfig] Assistant '${id}' does not exist`);
+    return {
+      exists: false,
+      valid: false,
+      config: null,
+      validation: null,
+    };
+  }
+
+  const config = assistantConfigs[id];
+  const validation = validateAssistantConfig(config);
+
+  console.log(
+    `✅ [AssistantConfig] Assistant '${id}' exists, validation: ${
+      validation.isValid ? "passed" : "failed"
+    }`
+  );
+
+  return {
+    exists: true,
+    valid: validation.isValid,
+    config: config,
+    validation: validation,
   };
 }

@@ -9,16 +9,39 @@ export class ReflectiveAssistant extends AIAssistant {
       const eventLogger = params;
       const domElements = arguments[1];
 
-      const systemPrompt = `You are a friendly Socratic tutor specializing in Python turtle graphics. You maintain conversation context to guide learning effectively.
+      const systemPrompt = `You are a Socratic tutor specializing in Python turtle graphics. Your primary method is to guide learning through strategic questioning rather than providing direct answers or solutions.
 
-Key capabilities:
-- Remember our previous discussions and learning progress
-- Guide through thoughtful questions rather than giving direct answers
-- Reference what we've covered before
-- Build upon previous learning moments
-- Encourage discovery and understanding
+Core Socratic principles:
+- Ask questions that lead students to discover answers themselves
+- Break down complex problems into smaller, manageable questions
+- Help students examine their assumptions and reasoning
+- Guide them to test their ideas and learn from results
+- Never give direct answers - always respond with clarifying or guiding questions
+- Build understanding step by step through dialogue
 
-You should NOT write code for users, but guide them to discover solutions themselves while maintaining awareness of our conversation history.`;
+Questioning strategies:
+- "What do you think will happen if...?"
+- "Why do you think that approach might work?"
+- "What patterns do you notice in your code?"
+- "How is this similar to something you've done before?"
+- "What would you try first to solve this?"
+- "What does the error message tell you?"
+- "If that didn't work, what might be the reason?"
+
+Response patterns:
+- Always respond with questions that guide thinking
+- Acknowledge their attempts: "I see you tried X. What made you choose that approach?"
+- Connect to prior knowledge: "How does this relate to what you learned earlier?"
+- Encourage experimentation: "What would happen if you changed...?"
+- Help them reflect: "What did you learn from that result?"
+
+You should NEVER:
+- Provide direct code solutions
+- Give step-by-step instructions
+- Tell them exactly what to do
+- Explain concepts directly without questioning
+
+Instead, always guide through questions that help them discover the solution themselves.`;
 
       super({
         systemPrompt,
@@ -27,11 +50,12 @@ You should NOT write code for users, but guide them to discover solutions themse
         assistantId: "reflective",
         config: {
           id: "reflective",
-          name: "Reflective Tutor",
+          name: "Socratic Tutor",
           capabilities: [
-            "socratic_method",
-            "guided_learning",
-            "educational_guidance",
+            "socratic_questioning",
+            "guided_discovery",
+            "strategic_inquiry",
+            "reflection_facilitation",
           ],
         },
       });
@@ -44,101 +68,255 @@ You should NOT write code for users, but guide them to discover solutions themse
   initialize() {
     super.initialize();
 
-    // Reflective assistant-specific initialization
+    // Socratic assistant-specific initialization
     this.questionsAsked = [];
+    this.questionTypes = []; // Track different types of Socratic questions
     this.learningProgress = new Map();
-    this.guidanceLevel = this.settings.questionGuidanceRatio || 0.7;
+    this.guidanceLevel = this.settings.questionGuidanceRatio || 0.9; // 90% questions
+    this.currentInquiryThread = null; // Track current line of questioning
 
-    console.log(`🤔 Reflective Assistant initialized (${this.assistantId})`);
+    console.log(`🤔 Socratic Tutor initialized (${this.assistantId})`);
   }
 
   async getSuggestion(userPrompt) {
-    console.log("🤔 ReflectiveAssistant processing:", userPrompt);
+    console.log("🤔 SocraticAssistant processing:", userPrompt);
     if (this.isGenerating) return;
 
-    this.emit("reflectionStarted", { prompt: userPrompt });
+    this.emit("socraticInquiryStarted", { prompt: userPrompt });
 
+    // Enhanced logging for Socratic interactions
+    this.logAssistantEvent("socratic_inquiry_started", {
+      prompt: userPrompt.substring(0, 200), // Truncate for storage
+      mode: "socratic",
+      historyLength: this.conversationManager.getHistoryLength(),
+      questionsAskedCount: this.questionsAsked.length,
+      currentInquiryThread: this.currentInquiryThread,
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_prompt", {
       prompt: userPrompt,
-      mode: "reflective",
+      mode: "socratic",
       assistantId: this.assistantId,
       historyLength: this.conversationManager.getHistoryLength(),
     });
 
     const response = await this.fetchFromAI(userPrompt);
 
+    // Enhanced logging with Socratic-specific data
+    this.logAssistantEvent("socratic_response_generated", {
+      responseType: response.type,
+      responseLength: response.content?.length || 0,
+      wasCodeRedirected: response.type === "code",
+      questionTypesUsed: this.questionTypes.slice(-5), // Last 5 question types
+      historyLength: this.conversationManager.getHistoryLength(),
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_response", {
       response,
       assistantId: this.assistantId,
       historyLength: this.conversationManager.getHistoryLength(),
     });
 
-    // Track questions vs direct guidance
-    this.trackResponse(response, userPrompt);
+    // Track and categorize the Socratic questioning
+    this.trackSocraticResponse(response, userPrompt);
 
     if (response.type === "text") {
       this.createChatMessage(response.content, "ai");
-      this.emit("guidanceProvided", {
+      this.emit("socraticQuestionAsked", {
         content: response.content,
         prompt: userPrompt,
       });
     } else if (response.type === "code") {
-      // Reflective assistant typically shouldn't provide code, but handle it gracefully
-      this.createChatMessage(response.content, "ai", response.code);
-      this.emit("codeProvided", {
-        code: response.code,
-        content: response.content,
+      // Socratic tutor should NEVER provide code directly
+      // Convert any code response to a guiding question
+      const guidingQuestion = `I notice you might be looking for a code solution. Instead, let me ask: what do you think the first step should be to solve this problem?`;
+      this.createChatMessage(guidingQuestion, "ai");
+
+      // Log code redirection
+      this.logAssistantEvent("code_redirected_to_question", {
+        originalCodeLength: response.code?.length || 0,
+        guidingQuestion: guidingQuestion.substring(0, 100),
+        wasRedirected: true,
+      });
+
+      this.emit("codeRedirectedToQuestion", {
+        originalCode: response.code,
+        guidingQuestion: guidingQuestion,
         prompt: userPrompt,
-        note: "Reflective assistant provided code - may need adjustment",
+        note: "Code response converted to Socratic question",
       });
     }
 
-    this.emit("reflectionCompleted", { response, prompt: userPrompt });
+    this.emit("socraticInquiryCompleted", { response, prompt: userPrompt });
   }
 
   /**
-   * Track whether response was a question or guidance
+   * Track and categorize Socratic questioning patterns
    * @param {object} response - AI response
    * @param {string} userPrompt - Original user prompt
    */
-  trackResponse(response, userPrompt) {
-    const isQuestion =
-      response.content.includes("?") ||
-      response.content.toLowerCase().includes("what do you think") ||
-      response.content.toLowerCase().includes("how might");
+  trackSocraticResponse(response, userPrompt) {
+    const content = response.content.toLowerCase();
+
+    // Categorize the type of Socratic question
+    const questionType = this.categorizeSocraticQuestion(content);
 
     const entry = {
       prompt: userPrompt,
       response: response.content,
-      isQuestion,
+      questionType,
+      isQuestion: content.includes("?"),
       timestamp: new Date(),
     };
 
     this.questionsAsked.push(entry);
+    this.questionTypes.push(questionType);
 
-    if (isQuestion) {
-      this.emit("questionAsked", entry);
+    if (entry.isQuestion) {
+      this.emit("socraticQuestionAsked", entry);
+    } else {
+      this.emit("nonQuestionResponse", entry);
     }
   }
 
   /**
-   * Get statistics about teaching approach
-   * @returns {object} Teaching statistics
+   * Categorize the type of Socratic question
+   * @param {string} content - Response content in lowercase
+   * @returns {string} Question category
    */
-  getTeachingStats() {
+  categorizeSocraticQuestion(content) {
+    if (
+      content.includes("what do you think") ||
+      content.includes("what would you")
+    ) {
+      return "hypothesis_generation";
+    }
+    if (content.includes("why") || content.includes("what makes you")) {
+      return "reasoning_exploration";
+    }
+    if (
+      content.includes("how is this similar") ||
+      content.includes("how does this relate")
+    ) {
+      return "connection_building";
+    }
+    if (
+      content.includes("what happened") ||
+      content.includes("what did you notice")
+    ) {
+      return "observation_inquiry";
+    }
+    if (
+      content.includes("what would happen if") ||
+      content.includes("what if you")
+    ) {
+      return "experimentation_prompt";
+    }
+    if (
+      content.includes("what patterns") ||
+      content.includes("what do you see")
+    ) {
+      return "pattern_recognition";
+    }
+    if (
+      content.includes("how would you") ||
+      content.includes("what approach")
+    ) {
+      return "strategy_inquiry";
+    }
+    return "general_inquiry";
+  }
+
+  /**
+   * Get statistics about Socratic teaching approach
+   * @returns {object} Socratic teaching statistics
+   */
+  getSocraticStats() {
     const totalResponses = this.questionsAsked.length;
     const questionCount = this.questionsAsked.filter(
       (entry) => entry.isQuestion
     ).length;
-    const guidanceCount = totalResponses - questionCount;
+    const statementCount = totalResponses - questionCount;
+
+    // Count question types
+    const questionTypeCounts = this.questionTypes.reduce((counts, type) => {
+      counts[type] = (counts[type] || 0) + 1;
+      return counts;
+    }, {});
 
     return {
       totalResponses,
       questionCount,
-      guidanceCount,
+      statementCount,
       questionRatio: totalResponses > 0 ? questionCount / totalResponses : 0,
       targetRatio: this.guidanceLevel,
+      questionTypeDistribution: questionTypeCounts,
+      mostCommonQuestionType: this.getMostCommonQuestionType(),
     };
+  }
+
+  /**
+   * Get the most commonly used question type
+   * @returns {string} Most common question type
+   */
+  getMostCommonQuestionType() {
+    if (this.questionTypes.length === 0) return "none";
+
+    const counts = this.questionTypes.reduce((acc, type) => {
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.keys(counts).reduce((a, b) =>
+      counts[a] > counts[b] ? a : b
+    );
+  }
+
+  /**
+   * Start a new line of Socratic inquiry
+   * @param {string} topic - The topic to explore
+   * @param {string} startingQuestion - Initial question to begin inquiry
+   */
+  startInquiryThread(topic, startingQuestion) {
+    this.currentInquiryThread = {
+      topic,
+      startingQuestion,
+      questionsInThread: [],
+      startTime: new Date(),
+    };
+
+    this.emit("inquiryThreadStarted", {
+      topic,
+      startingQuestion,
+    });
+  }
+
+  /**
+   * Add question to current inquiry thread
+   * @param {string} question - Question to add to thread
+   */
+  addToInquiryThread(question) {
+    if (this.currentInquiryThread) {
+      this.currentInquiryThread.questionsInThread.push({
+        question,
+        timestamp: new Date(),
+      });
+    }
+  }
+
+  /**
+   * Complete current inquiry thread
+   */
+  completeInquiryThread() {
+    if (this.currentInquiryThread) {
+      this.emit("inquiryThreadCompleted", {
+        ...this.currentInquiryThread,
+        endTime: new Date(),
+      });
+      this.currentInquiryThread = null;
+    }
   }
 
   /**
@@ -169,16 +347,18 @@ You should NOT write code for users, but guide them to discover solutions themse
    */
   getStatus() {
     const baseStatus = super.getStatus();
-    const teachingStats = this.getTeachingStats();
+    const socraticStats = this.getSocraticStats();
 
     return {
       ...baseStatus,
-      teachingStats,
+      socraticStats,
       learningTopics: this.learningProgress.size,
+      currentInquiry: this.currentInquiryThread?.topic || null,
       specializations: [
-        "socratic_method",
-        "guided_learning",
-        "educational_guidance",
+        "socratic_questioning",
+        "guided_discovery",
+        "strategic_inquiry",
+        "reflection_facilitation",
       ],
     };
   }
@@ -188,7 +368,43 @@ You should NOT write code for users, but guide them to discover solutions themse
    */
   clearTeachingHistory() {
     this.questionsAsked = [];
+    this.questionTypes = [];
     this.learningProgress.clear();
+    this.currentInquiryThread = null;
     this.emit("teachingHistoryCleared");
+  }
+
+  /**
+   * Generate a Socratic question based on student's current work
+   * @param {string} studentCode - Current code the student is working on
+   * @param {string} context - Context of their current challenge
+   * @returns {string} Socratic question
+   */
+  generateSocraticQuestion(studentCode, context = "general") {
+    const questionTemplates = {
+      general: [
+        "What do you think this code will do when you run it?",
+        "What patterns do you notice in your code?",
+        "How does this relate to what you've learned before?",
+      ],
+      error: [
+        "What do you think might be causing this error?",
+        "What does the error message tell you?",
+        "How could you test your hypothesis about what's wrong?",
+      ],
+      improvement: [
+        "What would happen if you changed this part?",
+        "How could you make this code more efficient?",
+        "What other approaches might work here?",
+      ],
+      understanding: [
+        "Why do you think this approach works?",
+        "What would you expect to see if this was working correctly?",
+        "How would you explain what this code does to someone else?",
+      ],
+    };
+
+    const templates = questionTemplates[context] || questionTemplates.general;
+    return templates[Math.floor(Math.random() * templates.length)];
   }
 }

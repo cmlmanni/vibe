@@ -92,6 +92,16 @@ Instead, only react to what they've already done:
 
     this.emit("explorationStarted", { prompt: userPrompt });
 
+    // Enhanced logging for reactive interactions
+    this.logAssistantEvent("reactive_exploration_started", {
+      prompt: userPrompt.substring(0, 200), // Truncate for storage
+      mode: "ignorant_schoolmaster",
+      historyLength: this.conversationManager.getHistoryLength(),
+      interactionsCount: this.interactions.length,
+      verificationMode: this.verificationMode,
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_prompt", {
       prompt: userPrompt,
       mode: "ignorant_schoolmaster",
@@ -101,6 +111,16 @@ Instead, only react to what they've already done:
 
     const response = await this.fetchFromAI(userPrompt);
 
+    // Enhanced logging with reactive-specific data
+    this.logAssistantEvent("reactive_response_generated", {
+      responseType: response.type,
+      responseLength: response.content?.length || 0,
+      wasCodeRejected: response.type === "code",
+      interactionType: this.categorizeInteraction(userPrompt),
+      historyLength: this.conversationManager.getHistoryLength(),
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_response", {
       response,
       assistantId: this.assistantId,
@@ -121,6 +141,14 @@ Instead, only react to what they've already done:
       // Convert any code responses to reactive questions about student's existing code
       const reactiveQuestion = `Look at your code. Does it do what you expected? (yes/no)`;
       this.createChatMessage(reactiveQuestion, "ai");
+
+      // Log code rejection
+      this.logAssistantEvent("code_rejected_reactive_question", {
+        rejectedCodeLength: response.code?.length || 0,
+        reactiveQuestion: reactiveQuestion,
+        purelyReactive: true,
+      });
+
       this.emit("reactiveQuestionAsked", {
         content: reactiveQuestion,
         rejectedCode: response.code,

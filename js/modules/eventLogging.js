@@ -15,8 +15,64 @@ export function initializeEventLogging() {
   }
 
   function saveLogToFile() {
-    const logData = JSON.stringify(eventLog, null, 2);
-    const blob = new Blob([logData], { type: "application/json" });
+    // Collect assistant analytics if AI system is available
+    let assistantAnalytics = null;
+    try {
+      // Try to get analytics from all available assistants
+      if (
+        window.ai &&
+        typeof window.ai.getAllAssistantAnalytics === "function"
+      ) {
+        assistantAnalytics = window.ai.getAllAssistantAnalytics();
+      } else if (window.vibeAI) {
+        // Fallback: collect analytics from individual assistants
+        assistantAnalytics = {
+          timestamp: new Date().toISOString(),
+          assistants: {},
+        };
+
+        // Check for known assistant instances
+        const assistantInstances = [
+          window.vibeAI.vibecodingAI,
+          window.vibeAI.reflectiveAI,
+          window.vibeAI.ignorantSchoolmasterAI,
+        ].filter(Boolean);
+
+        assistantInstances.forEach((assistant) => {
+          if (
+            assistant &&
+            typeof assistant.getAssistantAnalytics === "function"
+          ) {
+            try {
+              assistantAnalytics.assistants[
+                assistant.assistantId || assistant.constructor.name
+              ] = assistant.getAssistantAnalytics();
+            } catch (e) {
+              console.warn(
+                `Failed to get analytics for assistant ${assistant.assistantId}:`,
+                e
+              );
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Failed to collect assistant analytics:", e);
+    }
+
+    const logData = {
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        eventCount: eventLog.length,
+        version: "1.0",
+        source: "vibe-experiment",
+      },
+      events: eventLog,
+      assistantAnalytics: assistantAnalytics,
+    };
+
+    const jsonString = JSON.stringify(logData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -25,7 +81,14 @@ export function initializeEventLogging() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    console.log("Event log saved to file");
+
+    console.log("Event log saved to file with assistant analytics:", {
+      eventCount: eventLog.length,
+      hasAssistantAnalytics: !!assistantAnalytics,
+      assistantCount: assistantAnalytics?.assistants
+        ? Object.keys(assistantAnalytics.assistants).length
+        : 0,
+    });
   }
 
   function getEventLog() {

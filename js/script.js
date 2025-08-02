@@ -5,6 +5,7 @@ import {
   ensureEditorReady,
 } from "./modules/codeMirrorSetup.js";
 import { initializeEventLogging } from "./modules/eventLogging.js";
+import { initializeCleanLogging } from "./modules/cleanLoggingIntegration.js";
 import { initializeTutorial } from "./modules/tutorial/index.js";
 import { initializeSkulpt } from "./modules/skulptRunner.js";
 import { initializeAIAssistants } from "./modules/ai/index.js";
@@ -16,11 +17,14 @@ import { initializeSurveyModal } from "./modules/surveyModal.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Initializing VIBE experimental application...");
+  console.log("📅 Debug: Script loaded at", new Date().toISOString());
+  console.log("🔧 Debug: This is the UPDATED script with enhanced debugging");
 
   try {
     // Initialize all modules
     const domElements = initializeDOMElements();
-    const eventLogger = initializeEventLogging();
+    // UPDATED: Use clean dual-stream logging instead of noisy single-stream
+    const eventLogger = initializeCleanLogging();
     const experimentConfig = initializeExperimentConfig(eventLogger);
 
     // IMPORTANT: Make experimentConfig globally available
@@ -67,6 +71,21 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const containerManager = initializeContainerManagement(domElements);
 
+    // UPDATED: Setup enhanced empirical logging with keyboard tracking
+    console.log("📊 Setting up enhanced empirical logging...");
+    eventLogger.attachToCodeMirror(editor);
+    eventLogger.startLiveMonitoring();
+    console.log("✅ Enhanced logging with keyboard tracking enabled");
+
+    // Make systems globally accessible
+    window.ai = aiAssistants;
+    window.vibeAI = aiAssistants; // Backup reference
+    window.eventLogger = eventLogger; // Make logger globally accessible for auto-saves
+
+    console.log(
+      "🤖 AI system and logger made globally accessible for analytics"
+    );
+
     // Setup resizable panels
     setupResizablePanels(domElements, containerManager);
 
@@ -111,12 +130,38 @@ function setupEventListeners(
   // AI assistant events
   aiAssistants.setupEventListeners();
 
-  // Save log
-  domElements.saveLogBtn?.addEventListener("click", eventLogger.saveLogToFile);
+  // UPDATED: Task completion (clean logging happens in tutorial logic) - with debugging
+  console.log("🔍 Setting up complete and continue button...");
+  console.log("Button element found:", domElements.completeAndContinueBtn);
+  console.log("Tutorial object:", tutorial);
+  console.log("Tutorial methods available:", Object.keys(tutorial));
 
-  // FIXED: Use the DOM element from domElements
-  domElements.completeAndContinueBtn?.addEventListener("click", () => {
-    console.log("Complete and continue button clicked!");
-    tutorial.completeTaskAndContinue(tutorial.currentTaskIndex);
-  });
+  if (domElements.completeAndContinueBtn) {
+    domElements.completeAndContinueBtn.addEventListener("click", (event) => {
+      console.log("✅ Complete and continue button clicked!");
+
+      // Prevent any default behavior and stop event propagation
+      event.preventDefault();
+      event.stopPropagation();
+
+      console.log("Current task index:", tutorial.currentTaskIndex);
+
+      if (typeof tutorial.completeTaskAndContinue === "function") {
+        console.log("✅ completeTaskAndContinue function is available");
+        try {
+          tutorial.completeTaskAndContinue(tutorial.currentTaskIndex);
+        } catch (error) {
+          console.error("❌ Error in completeTaskAndContinue:", error);
+        }
+      } else {
+        console.error(
+          "❌ completeTaskAndContinue function not found on tutorial object"
+        );
+        console.log("Available methods:", Object.keys(tutorial));
+      }
+    });
+    console.log("✅ Event listener attached to complete and continue button");
+  } else {
+    console.error("❌ Complete and continue button not found!");
+  }
 }

@@ -14,7 +14,6 @@ export function initializeDOMElements() {
     stepText: document.getElementById("step-text"),
     prevSubstepBtn: document.getElementById("prev-substep-btn"),
     nextSubstepBtn: document.getElementById("next-substep-btn"),
-    saveLogBtn: document.getElementById("save-log-btn"),
     completeAndContinueBtn: document.getElementById(
       "complete-and-continue-btn"
     ), // ADD THIS

@@ -60,6 +60,15 @@ Be helpful, friendly, and contextually aware of our ongoing conversation.`;
 
     this.emit("suggestionStarted", { prompt: userPrompt });
 
+    // Use enhanced logging from base class
+    this.logAssistantEvent("suggestion_started", {
+      prompt: userPrompt.substring(0, 200), // Truncate for storage
+      mode: "vibecoding",
+      historyLength: this.conversationManager.getHistoryLength(),
+      codeExamplesCount: this.codeExamples.length,
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_prompt", {
       prompt: userPrompt,
       mode: "vibecoding",
@@ -69,6 +78,16 @@ Be helpful, friendly, and contextually aware of our ongoing conversation.`;
 
     const response = await this.fetchFromAI(userPrompt);
 
+    // Enhanced logging with vibecoding-specific data
+    this.logAssistantEvent("suggestion_completed", {
+      responseType: response.type,
+      responseLength: response.content?.length || 0,
+      hasCode: response.type === "code",
+      codeLength: response.code?.length || 0,
+      historyLength: this.conversationManager.getHistoryLength(),
+    });
+
+    // Legacy logging for compatibility
     this.eventLogger.logEvent("ai_response", {
       response,
       assistantId: this.assistantId,

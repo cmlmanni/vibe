@@ -37,8 +37,198 @@ export class AIAssistant {
     // Initialize chat renderer
     this.chatRenderer = new ChatRenderer(this.domElements, this);
 
+    // Initialize comprehensive logging system
+    this.initializeLogging();
+
     // Initialize assistant-specific setup
     this.initialize();
+  }
+
+  /**
+   * Initialize comprehensive logging system for this assistant instance
+   */
+  initializeLogging() {
+    // Assistant-specific interaction tracking
+    this.interactionLog = {
+      assistantId: this.assistantId,
+      type: this.constructor.name,
+      initTimestamp: new Date().toISOString(),
+      interactions: [],
+      systemEvents: [],
+      performanceMetrics: {
+        totalRequests: 0,
+        totalResponseTime: 0,
+        averageResponseTime: 0,
+        errors: 0,
+        successfulRequests: 0,
+      },
+      capabilities: [...this.capabilities],
+      config: {
+        hasSystemPrompt: !!this.systemPrompt,
+        systemPromptLength: this.systemPrompt?.length || 0,
+        settingsKeys: Object.keys(this.settings || {}),
+        configKeys: Object.keys(this.config || {}),
+      },
+    };
+
+    // Log assistant initialization
+    this.logAssistantEvent("assistant_initialized", {
+      assistantId: this.assistantId,
+      type: this.constructor.name,
+      capabilities: this.capabilities,
+      hasSystemPrompt: !!this.systemPrompt,
+      configKeys: Object.keys(this.config),
+    });
+
+    console.log(
+      `🔧 [${this.assistantId}] Comprehensive logging system initialized`
+    );
+  }
+
+  /**
+   * Log assistant-specific events with enhanced context
+   */
+  logAssistantEvent(eventType, data = {}) {
+    const timestamp = new Date().toISOString();
+
+    // Enhanced log entry with assistant context
+    const logEntry = {
+      timestamp,
+      eventType,
+      assistantId: this.assistantId,
+      assistantType: this.constructor.name,
+      data: {
+        ...data,
+        assistantState: {
+          isGenerating: this.isGenerating,
+          conversationLength:
+            this.conversationManager?.getHistory()?.length || 0,
+          capabilities: this.capabilities,
+        },
+      },
+    };
+
+    // Add to assistant-specific log
+    this.interactionLog.systemEvents.push(logEntry);
+
+    // Also log to global event logger
+    if (this.eventLogger) {
+      this.eventLogger.logEvent(`assistant_${eventType}`, logEntry.data);
+    }
+
+    console.log(`📊 [${this.assistantId}] ${eventType}`, logEntry);
+    return logEntry;
+  }
+
+  /**
+   * Log user interactions with enhanced tracking
+   */
+  logUserInteraction(
+    interactionType,
+    userInput,
+    assistantResponse,
+    metadata = {}
+  ) {
+    const timestamp = new Date().toISOString();
+    const responseTime = metadata.responseTime || 0;
+
+    const interaction = {
+      timestamp,
+      interactionType,
+      userInput: userInput?.substring(0, 500) || "", // Truncate for storage efficiency
+      assistantResponse: assistantResponse?.substring(0, 1000) || "",
+      responseTime,
+      success: metadata.success !== false,
+      error: metadata.error || null,
+      additionalData: metadata.additionalData || {},
+    };
+
+    // Add to assistant-specific interaction log
+    this.interactionLog.interactions.push(interaction);
+
+    // Update performance metrics
+    this.updatePerformanceMetrics(responseTime, metadata.success !== false);
+
+    // Log to global event logger with assistant context
+    if (this.eventLogger) {
+      this.eventLogger.logEvent("assistant_user_interaction", {
+        assistantId: this.assistantId,
+        assistantType: this.constructor.name,
+        interaction,
+      });
+    }
+
+    console.log(
+      `💬 [${this.assistantId}] User interaction logged`,
+      interaction
+    );
+    return interaction;
+  }
+
+  /**
+   * Update performance metrics for this assistant
+   */
+  updatePerformanceMetrics(responseTime, success) {
+    const metrics = this.interactionLog.performanceMetrics;
+
+    metrics.totalRequests++;
+
+    if (success) {
+      metrics.successfulRequests++;
+      metrics.totalResponseTime += responseTime;
+      metrics.averageResponseTime =
+        metrics.successfulRequests > 0
+          ? metrics.totalResponseTime / metrics.successfulRequests
+          : 0;
+    } else {
+      metrics.errors++;
+    }
+
+    this.logAssistantEvent("performance_updated", {
+      metrics: { ...metrics },
+      latestResponseTime: responseTime,
+      success,
+    });
+  }
+
+  /**
+   * Get comprehensive assistant analytics
+   */
+  getAssistantAnalytics() {
+    const analytics = {
+      ...this.interactionLog,
+      currentState: {
+        isGenerating: this.isGenerating,
+        conversationLength: this.conversationManager?.getHistory()?.length || 0,
+        lastActivity:
+          this.interactionLog.interactions.length > 0
+            ? this.interactionLog.interactions[
+                this.interactionLog.interactions.length - 1
+              ].timestamp
+            : null,
+      },
+      summary: {
+        totalInteractions: this.interactionLog.interactions.length,
+        successRate:
+          this.interactionLog.performanceMetrics.totalRequests > 0
+            ? (
+                (this.interactionLog.performanceMetrics.successfulRequests /
+                  this.interactionLog.performanceMetrics.totalRequests) *
+                100
+              ).toFixed(2) + "%"
+            : "0%",
+        avgResponseTime:
+          this.interactionLog.performanceMetrics.averageResponseTime.toFixed(
+            2
+          ) + "ms",
+      },
+    };
+
+    console.log(
+      `📈 [${this.assistantId}] Analytics generated`,
+      analytics.summary
+    );
+    return analytics;
   }
 
   /**
@@ -129,8 +319,19 @@ export class AIAssistant {
 
   // Main AI interaction method
   async fetchFromAI(userPrompt, includeCodeContext = true) {
+    const startTime = Date.now();
+    let success = false;
+    let error = null;
+    let response = null;
+
     try {
       this.isGenerating = true;
+      this.logAssistantEvent("request_started", {
+        userPromptLength: userPrompt?.length || 0,
+        includeCodeContext,
+        timestamp: new Date().toISOString(),
+      });
+
       this.createChatMessage("Thinking...", "system");
 
       // Prepare contextual prompt
@@ -151,7 +352,7 @@ export class AIAssistant {
       });
 
       // Call Azure OpenAI with conversation history
-      const response = await getAIResponse(
+      response = await getAIResponse(
         this.getConversationForAPI(),
         this.systemPrompt
       );
@@ -162,6 +363,7 @@ export class AIAssistant {
 
       if (!response || typeof response !== "string") {
         console.error("Invalid response from AI:", response);
+        error = "Invalid response from AI";
         return {
           type: "text",
           content: "Sorry, I received an invalid response. Please try again.",
@@ -171,17 +373,52 @@ export class AIAssistant {
       // Add AI response to history
       this.addToHistory("assistant", response);
 
-      // Parse response for code blocks
-      return this.parseResponse(response);
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
+      success = true;
+      const parsedResponse = this.parseResponse(response);
+
+      // Log successful interaction
+      const responseTime = Date.now() - startTime;
+      this.logUserInteraction("ai_request", userPrompt, response, {
+        responseTime,
+        success: true,
+        includeCodeContext,
+        additionalData: {
+          responseType: parsedResponse.type,
+          responseLength: response.length,
+          hasCodeBlock: parsedResponse.type === "code",
+        },
+      });
+
+      return parsedResponse;
+    } catch (err) {
+      console.error("Error fetching AI response:", err);
+      error = err.message || "Failed to get AI response";
       this.chatRenderer.removeLastMessage();
       this.isGenerating = false;
 
+      // Log failed interaction
+      const responseTime = Date.now() - startTime;
+      this.logUserInteraction("ai_request", userPrompt, null, {
+        responseTime,
+        success: false,
+        error: error,
+        additionalData: {
+          errorType: err.name || "UnknownError",
+          includeCodeContext,
+        },
+      });
+
       return {
         type: "text",
-        content: `Error: ${error.message || "Failed to get AI response"}`,
+        content: `Error: ${error}`,
       };
+    } finally {
+      this.logAssistantEvent("request_completed", {
+        success,
+        error,
+        responseTime: Date.now() - startTime,
+        timestamp: new Date().toISOString(),
+      });
     }
   }
 

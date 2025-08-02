@@ -196,11 +196,17 @@ export function createTutorialLogic(
 
   // Combined function: Mark complete, save log, and advance
   function completeTaskAndContinue(taskIndex) {
+    console.log("🎯 completeTaskAndContinue called with taskIndex:", taskIndex);
+    console.log("📊 Total tasks available:", tutorialTasks.length);
+
     if (taskIndex >= 0 && taskIndex < tutorialTasks.length) {
+      console.log("✅ Task index is valid, proceeding...");
+
       // Mark task as completed
       tutorialTasks[taskIndex].completed = true;
 
       const task = tutorialTasks[taskIndex];
+      console.log("📋 Completing task:", task.title, "Type:", task.type);
 
       // Log the completion
       eventLogger.logEvent("task_completed", {
@@ -209,17 +215,20 @@ export function createTutorialLogic(
         paradigm: task.paradigm,
       });
 
-      // Save progress log
-      eventLogger.saveLogToFile();
-      console.log("Auto-saved progress after task completion");
+      // Save clean dual-stream log automatically on task completion
+      if (eventLogger.saveCleanLogToFile) {
+        eventLogger.saveCleanLogToFile();
+        console.log(
+          "📊 Auto-saved clean dual-stream log after task completion"
+        );
+      } else {
+        // Fallback to old method if clean logging not available
+        eventLogger.saveLogToFile();
+        console.log("Auto-saved progress after task completion");
+      }
 
-      // Update display first
-      updateTutorialDisplay(
-        tutorialTasks,
-        currentTaskIndex,
-        currentStepIndex,
-        eventLogger
-      );
+      // Don't update display immediately - will be updated when next task loads
+      // updateTutorialDisplay(...) - moved to after navigation
 
       // Check if this task needs a survey (Task 1: Draw a House, Task 2: House Class)
       const needsSurvey =
@@ -265,6 +274,13 @@ export function createTutorialLogic(
           }, 1000);
         }
       }
+    } else {
+      console.error(
+        "❌ Invalid task index:",
+        taskIndex,
+        "Total tasks:",
+        tutorialTasks.length
+      );
     }
   }
 

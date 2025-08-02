@@ -143,12 +143,58 @@ export function initializeAIAssistants(
   );
   console.log("Current AI:", currentAI.constructor.name);
 
+  /**
+   * Collect analytics from all AI assistants
+   */
+  function getAllAssistantAnalytics() {
+    const allAnalytics = {
+      timestamp: new Date().toISOString(),
+      currentAssistant:
+        currentAI?.assistantId || currentAI?.constructor?.name || "unknown",
+      assistants: {},
+    };
+
+    // Collect analytics from each assistant
+    const assistants = [
+      { key: "vibecodingAI", instance: vibecodingAI },
+      { key: "reflectiveAI", instance: reflectiveAI },
+      { key: "ignorantSchoolmasterAI", instance: ignorantSchoolmasterAI },
+    ];
+
+    assistants.forEach(({ key, instance }) => {
+      if (instance && typeof instance.getAssistantAnalytics === "function") {
+        try {
+          allAnalytics.assistants[key] = instance.getAssistantAnalytics();
+          console.log(`📊 Collected analytics for ${key}`);
+        } catch (error) {
+          console.warn(`Failed to collect analytics for ${key}:`, error);
+          allAnalytics.assistants[key] = {
+            error: error.message,
+            assistantId: instance.assistantId || key,
+            type: instance.constructor?.name || "Unknown",
+          };
+        }
+      } else {
+        console.warn(`${key} does not have getAssistantAnalytics method`);
+        allAnalytics.assistants[key] = {
+          error: "Analytics method not available",
+          assistantId: instance?.assistantId || key,
+          type: instance?.constructor?.name || "Unknown",
+        };
+      }
+    });
+
+    console.log("🔍 All assistant analytics collected:", allAnalytics);
+    return allAnalytics;
+  }
+
   return {
     handleGetSuggestion,
     setupEventListeners,
     vibecodingAI,
     reflectiveAI,
     ignorantSchoolmasterAI,
+    getAllAssistantAnalytics,
     get currentAI() {
       return currentAI;
     },
