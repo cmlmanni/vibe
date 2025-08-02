@@ -1,5 +1,5 @@
 /* filepath: /js/modules/tutorial/tutorialDisplay.js */
-import { ensureEditorReady } from "../codeMirrorSetup.js";
+import { ensureEditorReady, setEditorCode } from "../codeMirrorSetup.js";
 
 // Helper function to format text with inline code blocks
 function formatTextWithCode(text) {
@@ -30,7 +30,7 @@ export function updateCodeEditor(step, task) {
       step.type === "class_definition";
 
     if (shouldPopulateEditor) {
-      window.editor.setValue(step.code);
+      setEditorCode(step.code);
 
       if (step.type === "demonstration") {
         window.editor.setOption("readOnly", true);
@@ -46,11 +46,11 @@ export function updateCodeEditor(step, task) {
         ? "import turtle\nt = turtle.Turtle()\n\n# Your triangle code here\n"
         : step.code;
 
-      window.editor.setValue(templateCode);
+      setEditorCode(templateCode);
       window.editor.setOption("readOnly", false);
       window.editor.getWrapperElement().classList.remove("demonstration-mode");
     } else {
-      window.editor.setValue(step.code);
+      setEditorCode(step.code);
       window.editor.setOption("readOnly", false);
       window.editor.getWrapperElement().classList.remove("demonstration-mode");
     }

@@ -4,6 +4,7 @@ import {
   updateTutorialDisplay,
   setupToggleListeners,
 } from "./tutorialDisplay.js";
+import { setEditorCode } from "../codeMirrorSetup.js";
 
 function debugTaskStructure() {
   console.log("=== TASK STRUCTURE DEBUG ===");
@@ -126,7 +127,7 @@ export function createTutorialLogic(
       if (step.resetCode) {
         console.log("Resetting code");
         if (window.editor) {
-          window.editor.setValue(step.code);
+          setEditorCode(step.code);
           window.editor.clearHistory();
           window.editor.refresh();
         }
@@ -136,7 +137,7 @@ export function createTutorialLogic(
         console.log("New code with inserted methods:", newCode);
 
         if (window.editor) {
-          window.editor.setValue(newCode);
+          setEditorCode(newCode);
           window.editor.clearHistory();
           window.editor.refresh();
           window.editor.scrollTo(null, window.editor.getScrollInfo().height);
@@ -147,7 +148,7 @@ export function createTutorialLogic(
         console.log("New code:", newCode);
 
         if (window.editor) {
-          window.editor.setValue(newCode);
+          setEditorCode(newCode);
           window.editor.clearHistory();
           window.editor.refresh();
           window.editor.scrollTo(null, window.editor.getScrollInfo().height);

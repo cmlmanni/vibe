@@ -4,6 +4,9 @@ export function setupCodeMirror(textArea) {
     mode: { name: "python", version: 3, singleLineStringErrors: false },
     lineNumbers: true,
     indentUnit: 4,
+    indentWithTabs: false, // Use spaces for indentation (Python standard)
+    smartIndent: true,
+    electricChars: true,
     theme: "dracula",
     lineWrapping: true,
     viewportMargin: Infinity,
@@ -12,6 +15,8 @@ export function setupCodeMirror(textArea) {
       "Ctrl-Space": "autocomplete",
       "Ctrl-/": "toggleComment",
       "Cmd-/": "toggleComment",
+      Tab: "indentMore",
+      "Shift-Tab": "indentLess",
     },
     // Add these options for better initialization
     autofocus: true,
@@ -21,10 +26,30 @@ export function setupCodeMirror(textArea) {
   // Make it accessible globally
   window.editor = editor;
 
-  // Set default code
-  editor.setValue(`import turtle
+  // Function to convert tabs to spaces
+  const convertTabsToSpaces = (text) => {
+    return text.replace(/\t/g, "    "); // Convert tabs to 4 spaces
+  };
 
-# Your code here`);
+  // Function to ensure consistent indentation
+  const normalizeIndentation = (code) => {
+    return convertTabsToSpaces(code);
+  };
+
+  // Add event listener for paste events to convert tabs to spaces
+  editor.on("beforeChange", function (instance, change) {
+    if (change.origin === "paste" || change.origin === "+input") {
+      const newText = change.text.map((line) => convertTabsToSpaces(line));
+      change.update(change.from, change.to, newText);
+    }
+  });
+
+  // Set default code with proper spacing
+  editor.setValue(
+    normalizeIndentation(`import turtle
+
+# Your code here`)
+  );
 
   // Force immediate sizing and focus
   setTimeout(() => {
@@ -84,5 +109,18 @@ export function ensureEditorReady() {
     }
 
     console.log("Editor forced ready");
+  }
+}
+
+// Utility function to normalize indentation (convert tabs to spaces)
+export function normalizeIndentation(code) {
+  return code.replace(/\t/g, "    "); // Convert tabs to 4 spaces
+}
+
+// Function to set code in editor with normalized indentation
+export function setEditorCode(code) {
+  if (window.editor) {
+    const normalizedCode = normalizeIndentation(code);
+    window.editor.setValue(normalizedCode);
   }
 }
