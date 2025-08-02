@@ -243,7 +243,7 @@ This approach offers several advantages:
     steps: [
       {
         instruction:
-          "Create a Python House class with an __init__ method that accepts size, x and y position parameters. This is like creating a blueprint for all houses.",
+          "Create a Python House class with an __init__ method and add a draw_base method that draws a square at the house's position. This combines creating the blueprint and your first method.",
         code: `import turtle
 
 class House:
@@ -253,50 +253,36 @@ class House:
         self.y = y
         self.turtle = turtle.Turtle()
         
-    # Add methods below`,
-        hint: "Classes bundle data (size, position) with methods (actions). The `__init__` method is called when creating new objects.",
-        tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (self.size, self.x, self.y), we preserve these values for later use by the object's methods - this is the primary purpose of instance variables in object-oriented programming.",
-        learningNote:
-          "The `self` parameter represents 'this particular house object'. Each house you create will have its own size, position, and turtle - they don't share these attributes with other houses.",
-        conceptConnection:
-          "Unlike procedural programming where data is passed between functions, OOP bundles data WITH the functions that operate on it. The house 'knows' its own size and position.",
-        aiGuidance:
-          "If you're confused about `self`, try asking: 'What does self mean in a Python class, and why do I need to use it?'",
-        requirements: ["Class definition", "Constructor", "Instance variables"],
-        type: "class_definition",
-        preserveCode: true,
-        resetCode: true,
-      },
-      {
-        instruction:
-          "Add a draw_base method to the House class that draws a square at the house's position with the specified size. Notice how the method can access the house's own data.",
-        code: `
     def draw_base(self):
         # Move turtle to position and draw square base
-        # Use self.size, self.x, self.y
+        # Use self.turtle.goto(self.x, self.y) to position
+        # Then draw a square using self.size
         pass`,
-        hint: "Use `self.turtle.goto(self.x, self.y)` to position, then draw the square using `self.size`.",
-        tip: "Add this method inside your House class. Notice how the draw_base method uses self.turtle instead of receiving a turtle as a parameter like the procedural draw_square function did. This is because the method can access the turtle object that belongs specifically to this House instance through object encapsulation.",
+        hint: "Classes bundle data (size, position) with methods (actions). The `__init__` method is called when creating new objects. Use `self.turtle.goto(self.x, self.y)` to position, then draw the square using `self.size`.",
+        tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (self.size, self.x, self.y), we preserve these values for later use by the object's methods. Notice how the draw_base method uses self.turtle instead of receiving a turtle as a parameter like the procedural draw_square function did - this is object encapsulation in action.",
         learningNote:
-          "This method 'belongs' to the house object. When you call `my_house.draw_base()`, the method automatically knows which house's size and position to use.",
+          "The `self` parameter represents 'this particular house object'. Each house you create will have its own size, position, and turtle. This method 'belongs' to the house object and automatically knows which house's size and position to use.",
         conceptConnection:
-          "Compare this to the procedural approach where you had to pass the turtle and size as parameters. Here, the house 'owns' both the turtle and the size information.",
+          "Unlike procedural programming where data is passed between functions, OOP bundles data WITH the functions that operate on it. The house 'knows' its own size and position, and the draw_base method can access these directly.",
         aiGuidance:
-          "If you need help with the drawing logic, ask: 'How do I draw a square using turtle graphics inside a class method?'",
+          "If you're confused about `self` or need help with the drawing logic, try asking: 'What does self mean in a Python class?' or 'How do I draw a square using turtle graphics inside a class method?'",
         requirements: [
+          "Class definition",
+          "Constructor",
           "Method definition",
           "Uses self attributes",
           "Draws square",
         ],
-        type: "method_implementation",
+        type: "class_definition_with_method",
         preserveCode: true,
-        appendCode: true,
+        resetCode: true,
       },
       {
         instruction:
           "Add a draw_roof method to the House class that draws a triangle on top of the square base. This method will also 'know' how to position itself relative to the house.",
         code: `    def draw_roof(self):
         # Position turtle and draw triangle roof on top of base
+        # Calculate roof position based on self.x, self.y, and self.size
         pass`,
         hint: "Calculate roof position based on `self.x`, `self.y`, and `self.size`. The roof should sit on top of the square base.",
         tip: "Add this method after your draw_base method. Remember that the triangle should be positioned at the top of the square, so you'll need to calculate where that is using the house's position and size.",
