@@ -108,7 +108,7 @@ This approach demonstrates three key programming principles:
     steps: [
       {
         instruction:
-          "Write a Python function draw_square(t, size) that uses turtle graphics to draw a square with sides of length 'size'. This is your first step in creating reusable building blocks.",
+          "Write a Python function draw_square(t, size) that uses turtle graphics to draw a square with sides of length 'size'. This is your first step in creating reusable building blocks and introducing abstraction—hiding complexity behind a simple function name.",
         code: `import turtle
 
 def draw_square(t, size):
@@ -142,7 +142,7 @@ draw_triangle(t, 50)`,
         preserveCode: true,
         appendCode: true,
         hint: "Triangles have 3 sides and use 120-degree turns (360° ÷ 3 = 120°).",
-        tip: "Add this function below your existing draw_square function. Notice how parameterization allows this function to create triangles of any size - demonstrating code reuse through parameters.",
+        tip: "Add this function below your existing `draw_square` function. Notice how parameterization allows this function to create triangles of any size - demonstrating code reuse through parameters. This continues to build your modular shape library. Each function should focus on one shape—this reflects the Single Responsibility Principle: each function does one thing well.",
         learningNote:
           "You're now building a toolkit of functions. Each function has a single, clear responsibility - this makes your code easier to understand and debug.",
         conceptConnection:
@@ -243,7 +243,7 @@ This approach offers several advantages:
     steps: [
       {
         instruction:
-          "Create a Python House class with an __init__ method and add a draw_base method that draws a square at the house's position. This combines creating the blueprint and your first method.",
+          "Create a Python House class with an __init__ method and add a draw_base method that draws a square at the house's position. This combines creating the blueprint and your first method. draw_house doesn’t need to know how squares and triangles are drawn—it delegates that work to specialized helpers.",
         code: `import turtle
 
 class House:
@@ -254,14 +254,20 @@ class House:
         self.turtle = turtle.Turtle()
         
     def draw_base(self):
+        # This method draws only the square base of the house.
+        # It follows the Single Responsibility Principle: one method, one purpose.
         # Move turtle to position and draw square base
-        # Use self.turtle.goto(self.x, self.y) to position
-        # Then draw a square using self.size
-        pass`,
+        self.turtle.penup()
+        self.turtle.goto(self.x, self.y)
+        self.turtle.pendown()
+        for _ in range(4):
+            self.turtle.forward(self.size)
+            self.turtle.right(90)
+        self.turtle.penup()`,
         hint: "Classes bundle data (size, position) with methods (actions). The `__init__` method is called when creating new objects. Use `self.turtle.goto(self.x, self.y)` to position, then draw the square using `self.size`.",
-        tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (self.size, self.x, self.y), we preserve these values for later use by the object's methods. Notice how the draw_base method uses self.turtle instead of receiving a turtle as a parameter like the procedural draw_square function did - this is object encapsulation in action.",
+        tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (`self.size`, `self.x`, `self.y`), we preserve these values for later use by the object's methods. Notice how the `draw_base` method uses `self.turtle` instead of receiving a turtle as a parameter like the procedural `draw_square` function did - this is object encapsulation in action.",
         learningNote:
-          "The `self` parameter represents 'this particular house object'. Each house you create will have its own size, position, and turtle. This method 'belongs' to the house object and automatically knows which house's size and position to use.",
+          "In procedural programming, you’d need to pass size and position around manually. Here, your object handles that for you—making your code cleaner and more modular. The `self` parameter represents 'this particular house object'. Each house you create will have its own size, position, and turtle. This method 'belongs' to the house object and automatically knows which house's size and position to use.",
         conceptConnection:
           "Unlike procedural programming where data is passed between functions, OOP bundles data WITH the functions that operate on it. The house 'knows' its own size and position, and the draw_base method can access these directly.",
         aiGuidance:
@@ -279,7 +285,7 @@ class House:
       },
       {
         instruction:
-          "Add a draw_roof method to the House class that draws a triangle on top of the square base. This method will also 'know' how to position itself relative to the house.",
+          "Add a draw_roof method to the House class that draws a triangle on top of the square base. This method will also 'know' how to position itself relative to the house. This method builds on your understanding of encapsulation. It uses the house’s own position and size to draw the roof.",
         code: `    def draw_roof(self):
         # Position turtle and draw triangle roof on top of base
         # Calculate roof position based on self.x, self.y, and self.size
@@ -287,7 +293,7 @@ class House:
         hint: "Calculate roof position based on `self.x`, `self.y`, and `self.size`. The roof should sit on top of the square base.",
         tip: "Add this method after your draw_base method. Remember that the triangle should be positioned at the top of the square, so you'll need to calculate where that is using the house's position and size.",
         learningNote:
-          "Notice how this method also automatically has access to all the house's properties (size, position, turtle) without needing them passed as parameters.",
+          "Notice how this method also automatically has access to all the house's properties (size, position, turtle) without needing them passed as parameters. That’s because the House encapsulates its own data.",
         conceptConnection:
           "Each method in the class can use the same instance variables (self.x, self.y, self.size, self.turtle). This shared state is what makes objects powerful.",
         aiGuidance:
@@ -299,9 +305,12 @@ class House:
       },
       {
         instruction:
-          "Add a draw method to the House class that calls draw_base and draw_roof, then create and draw 3 different house instances. This demonstrates the power of object reusability.",
+          "Add a draw method to the House class that calls draw_base and draw_roof, then create and draw 3 different house instances. This method defines how a house is drawn, using smaller building blocks. It follows the Template Method Pattern, a design pattern where a high-level method coordinates calls to more specific methods.",
         code: `    def draw(self):
         # Draw the complete house (base + roof)
+        # The draw method organizes drawing a complete house.
+        # It follows the Template Method Pattern: a high-level method calling other steps in order.
+        # This way, we keep logic modular and easy to maintain.
         self.draw_base()
         self.draw_roof()
 
@@ -315,9 +324,9 @@ house2.draw()
 house3 = House(50, 150, 0)
 house3.draw()`,
         hint: "The draw method coordinates drawing the entire house by calling the other methods in the right order.",
-        tip: "Add the draw method, then create multiple house instances to test. The draw() method calling more specialized methods (draw_base and draw_roof) demonstrates the Template Method pattern - a software design pattern where a higher-level method defines the skeleton of an operation and delegates specific steps to other methods.",
+        tip: "Add the draw method, then create multiple house instances to test. The `draw()` method calling more specialized methods (`draw_base` and `draw_roof`) demonstrates the Template Method pattern - a software design pattern where a higher-level method defines the skeleton of an operation and delegates specific steps to other methods.",
         learningNote:
-          "Notice how easy it is to create multiple houses with different properties! Each house object maintains its own state independently.",
+          "Notice how easy it is to create multiple houses with different properties! Each house object maintains its own state independently. This is what makes your design scalable: you can now add more drawing steps (door, window) without changing how a house gets drawn overall.",
         conceptConnection:
           "This is the power of OOP: you define the class once, then create as many objects as you need. Each object is independent but follows the same 'blueprint'.",
         aiGuidance:
