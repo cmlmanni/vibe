@@ -9,6 +9,7 @@ import { VibecodingAssistant } from "./assistants/vibecodingAssistant.js";
 import { ReflectiveAssistant } from "./assistants/reflectiveAssistant.js";
 import { DebuggingAssistant } from "./assistants/debuggingAssistant.js";
 import { CreativeAssistant } from "./assistants/creativeAssistant.js";
+import { IgnorantSchoolmasterAssistant } from "./assistants/ignorantSchoolmasterAssistant.js";
 
 /**
  * Modular AI Assistant System
@@ -79,6 +80,11 @@ export class ModularAISystem {
         id: "reflective",
         class: ReflectiveAssistant,
         config: assistantConfigs.reflective,
+      },
+      {
+        id: "ignorant-schoolmaster",
+        class: IgnorantSchoolmasterAssistant,
+        config: assistantConfigs.ignorantSchoolmaster,
       },
       {
         id: "debugging",

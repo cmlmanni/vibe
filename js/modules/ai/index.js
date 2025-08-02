@@ -1,6 +1,7 @@
 /* filepath: /js/modules/ai/index.js */
 import { VibecodingAssistant } from "./assistants/vibecodingAssistant.js";
 import { ReflectiveAssistant } from "./assistants/reflectiveAssistant.js";
+import { IgnorantSchoolmasterAssistant } from "./assistants/ignorantSchoolmasterAssistant.js";
 
 export function initializeAIAssistants(
   domElements,
@@ -11,6 +12,10 @@ export function initializeAIAssistants(
   // Initialize AI assistants
   const vibecodingAI = new VibecodingAssistant(eventLogger, domElements);
   const reflectiveAI = new ReflectiveAssistant(eventLogger, domElements);
+  const ignorantSchoolmasterAI = new IgnorantSchoolmasterAssistant(
+    eventLogger,
+    domElements
+  );
 
   // Set the default assistant based on experimental condition
   function initializeDefaultAssistant() {
@@ -30,7 +35,17 @@ export function initializeAIAssistants(
     const selectedAssistant =
       domElements.aiModeSelect?.value || experimentConfig.getDefaultAssistant();
     console.log(`Using AI assistant: ${selectedAssistant}`);
-    return selectedAssistant === "vibecoding" ? vibecodingAI : reflectiveAI;
+
+    switch (selectedAssistant) {
+      case "vibecoding":
+        return vibecodingAI;
+      case "reflective":
+        return reflectiveAI;
+      case "ignorant-schoolmaster":
+        return ignorantSchoolmasterAI;
+      default:
+        return vibecodingAI; // Default fallback
+    }
   }
 
   // Initialize with correct default
@@ -86,8 +101,20 @@ export function initializeAIAssistants(
     domElements.aiModeSelect?.addEventListener("change", (e) => {
       const selectedAssistant = e.target.value;
 
-      currentAI =
-        selectedAssistant === "vibecoding" ? vibecodingAI : reflectiveAI;
+      switch (selectedAssistant) {
+        case "vibecoding":
+          currentAI = vibecodingAI;
+          break;
+        case "reflective":
+          currentAI = reflectiveAI;
+          break;
+        case "ignorant-schoolmaster":
+          currentAI = ignorantSchoolmasterAI;
+          break;
+        default:
+          currentAI = vibecodingAI;
+      }
+
       window.currentAI = currentAI;
 
       console.log(
@@ -121,6 +148,7 @@ export function initializeAIAssistants(
     setupEventListeners,
     vibecodingAI,
     reflectiveAI,
+    ignorantSchoolmasterAI,
     get currentAI() {
       return currentAI;
     },
