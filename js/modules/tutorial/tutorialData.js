@@ -248,6 +248,7 @@ This approach offers several advantages:
 
 class House:
     def __init__(self, size, x=0, y=0):
+        # Initialize house properties
         self.size = size
         self.x = x
         self.y = y
@@ -260,10 +261,14 @@ class House:
         self.turtle.penup()
         self.turtle.goto(self.x, self.y)
         self.turtle.pendown()
-        for _ in range(4):
-            self.turtle.forward(self.size)
-            self.turtle.right(90)
-        self.turtle.penup()`,
+        #TODO: Draw square using self.size
+
+        self.turtle.penup()
+
+# Test your class - create one house and try the draw_base method
+# TODO: After completing the draw_base method above, uncomment these lines to test:
+# house = House(50, 0, 0)
+# house.draw_base()`,
         hint: "Classes bundle data (size, position) with methods (actions). The `__init__` method is called when creating new objects. Use `self.turtle.goto(self.x, self.y)` to position, then draw the square using `self.size`.",
         tip: "The `__init__` method runs when you create a new House object. By storing size, x, and y as instance variables (`self.size`, `self.x`, `self.y`), we preserve these values for later use by the object's methods. Notice how the `draw_base` method uses `self.turtle` instead of receiving a turtle as a parameter like the procedural `draw_square` function did - this is object encapsulation in action.",
         learningNote:
@@ -286,18 +291,22 @@ class House:
       {
         instruction:
           "Add a draw_roof method to the House class that draws a triangle on top of the square base. This method will also 'know' how to position itself relative to the house. This method builds on your understanding of encapsulation. It uses the house’s own position and size to draw the roof.",
-        code: `    def draw_roof(self):
-        # Position turtle and draw triangle roof on top of base
-        # Calculate roof position based on self.x, self.y, and self.size
-        pass`,
-        hint: "Calculate roof position based on `self.x`, `self.y`, and `self.size`. The roof should sit on top of the square base.",
-        tip: "Add this method after your draw_base method. Remember that the triangle should be positioned at the top of the square, so you'll need to calculate where that is using the house's position and size.",
+        code: `
+    # TODO: comment the above test codes that test the draw_base method and complete the draw_roof method below
+    def draw_roof(self):
+        # Position turtle for roof and draw triangle on top of base
+        # Hint: Use penup() to move to roof position, then pendown() to draw
+        pass
+        
+# How would you test the code this time?`,
+        hint: "Use penup() to move the turtle to the roof starting position, then pendown() to draw the triangle. Remember to use a for loop like you learned in Task 1!",
+        tip: "Add this method after your draw_base method. Since draw_base ends with penup(), you can simply move the turtle to the starting corner of the roof and draw the triangle using the same for loop pattern you used in Task 1.",
         learningNote:
           "Notice how this method also automatically has access to all the house's properties (size, position, turtle) without needing them passed as parameters. That’s because the House encapsulates its own data.",
         conceptConnection:
           "Each method in the class can use the same instance variables (self.x, self.y, self.size, self.turtle). This shared state is what makes objects powerful.",
         aiGuidance:
-          "If you're struggling with positioning the roof correctly, ask: 'How do I calculate where to position a triangle roof on top of a square base in turtle graphics?'",
+          "If you're struggling with positioning the roof, ask: 'How do I move the turtle to draw a triangle on top of a square in turtle graphics?'",
         requirements: ["Roof method", "Proper positioning", "Triangle shape"],
         type: "method_implementation",
         preserveCode: true,
@@ -306,23 +315,15 @@ class House:
       {
         instruction:
           "Add a draw method to the House class that calls draw_base and draw_roof, then create and draw 3 different house instances. This method defines how a house is drawn, using smaller building blocks. It follows the Template Method Pattern, a design pattern where a high-level method coordinates calls to more specific methods.",
-        code: `    def draw(self):
+        code: `
+    def draw_house(self):
         # Draw the complete house (base + roof)
         # The draw method organizes drawing a complete house.
         # It follows the Template Method Pattern: a high-level method calling other steps in order.
         # This way, we keep logic modular and easy to maintain.
-        self.draw_base()
-        self.draw_roof()
+        pass
 
-# Create at least 3 different houses
-house1 = House(60, -150, 0)
-house1.draw()
-
-house2 = House(80, 0, 0)  
-house2.draw()
-
-house3 = House(50, 150, 0)
-house3.draw()`,
+# Create at least 3 different houses`,
         hint: "The draw method coordinates drawing the entire house by calling the other methods in the right order.",
         tip: "Add the draw method, then create multiple house instances to test. The `draw()` method calling more specialized methods (`draw_base` and `draw_roof`) demonstrates the Template Method pattern - a software design pattern where a higher-level method defines the skeleton of an operation and delegates specific steps to other methods.",
         learningNote:
@@ -360,10 +361,7 @@ house3.draw()`,
 # You can add a color parameter to __init__ and use self.turtle.color()
 
 # Test your new methods:
-house4 = House(90, 0, -100)
-house4.draw()
-house4.draw_door()
-house4.draw_window()`,
+`,
         hint: "This is optional. The methods will be automatically added inside your House class. Use `self.turtle.penup()` and `self.turtle.pendown()` to move to specific positions without drawing connecting lines.",
         tip: "These methods introduce precise positioning within objects. Calculate door/window positions relative to `self.x`, `self.y`, and `self.size`. The door might be at `(self.x + self.size//3, self.y)` and the window at `(self.x + self.size//4, self.y + self.size//2)`. This demonstrates how object methods can work together - first draw the house, then add details.",
         learningNote:
