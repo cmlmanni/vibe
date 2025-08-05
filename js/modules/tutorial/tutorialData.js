@@ -68,7 +68,7 @@ t.right(90)`,
     steps: [
       {
         instruction:
-          "Sketch a plan on paper for drawing a simple house with a square base and triangle roof using turtle graphics",
+          "Sketch a plan on paper for drawing a simple house with a square base and triangle roof as if you are using turtle graphics",
         code: "# No coding yet - use physical paper and pen",
         hint: "Think about: What shapes do you need? In what order? What turtle commands?",
         tip: "Good planning makes coding much easier!",
