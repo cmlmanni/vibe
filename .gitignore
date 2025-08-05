@@ -63,3 +63,6 @@ coverage/
 
 # Specific backend environment file (redundant but explicit)
 ./vibe-backend/.env
+
+# logs
+logs/
